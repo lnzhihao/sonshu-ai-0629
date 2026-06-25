@@ -184,6 +184,49 @@ app.post('/api/config', (req, res) => {
   }
 });
 
+// ── 账号 / 会员 ─────────────────────────────────────────────────────────────
+const crypto = require('crypto');
+const USERS_FILE = path.join(CONFIG_DIR, 'users.json');
+function loadUsers() { try { return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch { return {}; } }
+function saveUsers(u) { fs.mkdirSync(CONFIG_DIR, { recursive: true }); fs.writeFileSync(USERS_FILE, JSON.stringify(u, null, 2)); }
+function hashPw(pw, salt) { return crypto.scryptSync(String(pw), salt, 32).toString('hex'); }
+function pubUser(u) { let member = !!u.member; if (member && u.member_until && new Date(u.member_until) < new Date()) member = false; return { account: u.account, member, member_until: u.member_until || null }; }
+function userByToken(token) { if (!token) return null; const us = loadUsers(); for (const k in us) if (us[k].token === token) return us[k]; return null; }
+
+app.post('/api/auth/register', (req, res) => {
+  const { account, password } = req.body || {};
+  if (!account || !password) return res.status(400).json({ error: '请输入账号和密码' });
+  if (String(password).length < 6) return res.status(400).json({ error: '密码至少 6 位' });
+  const users = loadUsers();
+  const key = String(account).trim().toLowerCase();
+  if (users[key]) return res.status(409).json({ error: '该账号已存在，请直接登录' });
+  const salt = crypto.randomBytes(16).toString('hex');
+  const token = crypto.randomBytes(24).toString('hex');
+  users[key] = { account: String(account).trim(), salt, hash: hashPw(password, salt), token, member: false, member_until: null, created_at: new Date().toISOString() };
+  saveUsers(users);
+  res.json({ ok: true, token, ...pubUser(users[key]) });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { account, password } = req.body || {};
+  if (!account || !password) return res.status(400).json({ error: '请输入账号和密码' });
+  const users = loadUsers();
+  const key = String(account).trim().toLowerCase();
+  const u = users[key];
+  if (!u) return res.status(404).json({ error: '账号不存在', code: 'no_account' });
+  if (u.hash !== hashPw(password, u.salt)) return res.status(401).json({ error: '密码错误' });
+  u.token = crypto.randomBytes(24).toString('hex');
+  saveUsers(users);
+  res.json({ ok: true, token: u.token, ...pubUser(u) });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const u = userByToken(token);
+  if (!u) return res.status(401).json({ error: '未登录' });
+  res.json({ ok: true, ...pubUser(u) });
+});
+
 // ── ARK helpers ───────────────────────────────────────────────────────────
 function arkBase() { return cfg('ARK_BASE_URL') || 'https://ark.cn-beijing.volces.com/api/v3'; }
 

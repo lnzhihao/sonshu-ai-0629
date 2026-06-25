@@ -1266,7 +1266,7 @@
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">
       <div>
         <div style="font-size:19px;font-weight:750">账号与会员</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:4px">当前为 UI 预览，后续再接用户数据库与支付</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">账号登录已接入（账号/手机号+密码，免验证码）；会员开通待接支付</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="closeAccountModal()">✕</button>
     </div>
@@ -1281,7 +1281,11 @@
     <button class="btn btn-primary" style="width:100%;padding:11px" onclick="previewAccountLogin()">登录 / 注册</button>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px;border-radius:10px;background:var(--bg)">
       <div><div style="font-size:12px;font-weight:650">游客模式</div><div style="font-size:10.5px;color:var(--text2);margin-top:2px">不登录也可以使用当前功能</div></div>
-      <span class="badge badge-wait">会员功能待接入</span>
+      <span class="badge badge-wait">会员开通需接入支付</span>
+    </div>
+    <div id="account-logout-row" style="display:none;margin-top:12px;text-align:center">
+      <span id="account-member-status" style="font-size:11px;color:var(--text2);display:block;margin-bottom:8px"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logoutAccount()">退出登录</button>
     </div>
   </div>
 </div>
@@ -1316,18 +1320,63 @@ function openAccountModal() {
 function closeAccountModal() {
   document.getElementById('account-modal').classList.remove('open');
 }
-function previewAccountLogin() {
+async function previewAccountLogin() {
   const account = document.getElementById('account-login-id').value.trim();
   const password = document.getElementById('account-login-password').value;
   if (!account || !password) return toast('请输入账号和密码', 'error');
-  localStorage.setItem('xinmeiti-account-preview', account);
-  document.getElementById('account-display-name').textContent = account;
-  closeAccountModal();
-  toast('账号界面已记录；真实登录与会员后台尚未接入', 'success');
+  try {
+    let r = await fetch(apiBase() + '/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ account, password }) });
+    let d = await r.json().catch(() => ({}));
+    if (r.status === 404) {
+      // 账号不存在 → 自动注册
+      r = await fetch(apiBase() + '/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ account, password }) });
+      d = await r.json().catch(() => ({}));
+      if (!r.ok) return toast(d.error || '注册失败', 'error');
+      toast('注册成功，已自动登录', 'success');
+    } else if (!r.ok) {
+      return toast(d.error || '登录失败', 'error');
+    } else {
+      toast('登录成功', 'success');
+    }
+    localStorage.setItem('xinmeiti-token', d.token);
+    S.user = { account: d.account, member: d.member, member_until: d.member_until };
+    updateAccountUI();
+    closeAccountModal();
+  } catch(e) { toast('网络错误: ' + e.message, 'error'); }
 }
-function restoreAccountPreview() {
-  const account = localStorage.getItem('xinmeiti-account-preview');
-  if (account) document.getElementById('account-display-name').textContent = account;
+function updateAccountUI() {
+  const name = document.getElementById('account-display-name');
+  if (!name) return;
+  const sub = name.nextElementSibling;
+  if (S.user && S.user.account) {
+    name.textContent = S.user.account;
+    if (sub) sub.textContent = S.user.member ? '✨ 会员用户' : '普通用户 · 点此管理';
+  } else {
+    name.textContent = '登录 / 注册';
+    if (sub) sub.textContent = '会员中心 · 可游客使用';
+  }
+  const lo = document.getElementById('account-logout-row');
+  if (lo) lo.style.display = (S.user && S.user.account) ? '' : 'none';
+  const ms = document.getElementById('account-member-status');
+  if (ms) ms.textContent = (S.user && S.user.account) ? (S.user.member ? '✨ 会员已开通' : '普通用户（会员开通需接入支付）') : '';
+}
+function logoutAccount() {
+  localStorage.removeItem('xinmeiti-token');
+  S.user = null;
+  updateAccountUI();
+  closeAccountModal();
+  toast('已退出登录', 'success');
+}
+async function restoreAccountPreview() {
+  const token = localStorage.getItem('xinmeiti-token');
+  if (!token) { updateAccountUI(); return; }
+  try {
+    const r = await fetch(apiBase() + '/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+    if (!r.ok) { localStorage.removeItem('xinmeiti-token'); updateAccountUI(); return; }
+    const d = await r.json();
+    S.user = { account: d.account, member: d.member, member_until: d.member_until };
+    updateAccountUI();
+  } catch(e) {}
 }
 function demo_videos() { return [{name:'蓝牙耳机开箱',type:'开箱',dur:28,src:'local'},{name:'产品对比测评',type:'产品展示',dur:45,src:'local'}]; }
 function demo_accounts() { return [{name:'@tech_us_1',niche:'3C',health:'正常'},{name:'@lifestyle_us',niche:'生活方式',health:'正常'}]; }
