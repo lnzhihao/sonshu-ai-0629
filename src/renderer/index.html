@@ -742,7 +742,7 @@
           </div>
         </div>
       </div>
-      <div style="margin-top:10px;font-size:11.5px;color:#9a6a00;background:#fff8e6;border:1px solid #ffe2a8;border-radius:8px;padding:9px 11px;line-height:1.6">⚠️ 要出「真人朗读的声音」，需先在「系统设置 → AI 配音」填好火山引擎语音 App ID / Access Token。豆包大模型只负责<b>写文案</b>、不产生人声；未配置语音密钥时，此页只能写稿、不出声。</div>
+      <div style="margin-top:10px;font-size:11.5px;color:#2e7d32;background:#edf7ed;border:1px solid #c5e6c5;border-radius:8px;padding:9px 11px;line-height:1.6">✅ AI 配音已接入火山引擎语音合成（v3）。输入文案、选音色即可生成人声 mp3；中/英/多语种按文案语言自动适配。需要更多语种音色，去火山控制台「音色库」订阅后告诉我加进来。</div>
     </div>
 
     <div class="card">
@@ -769,6 +769,18 @@
         <audio id="audio-elem" controls style="width:100%;margin-bottom:8px"></audio>
         <button class="btn btn-ghost btn-sm" onclick="downloadAudio()">下载 MP3</button>
       </div>
+    </div>
+
+    <!-- 批量配音 -->
+    <div class="card">
+      <h2>🔊 批量配音</h2>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">每行一条文案，用上方选中的声音批量生成。中/英/多语种按每行文案的语言自动适配（同一音色可跨语言）。</p>
+      <textarea id="batch-audio-text" placeholder="每行一条，例如：&#10;Hello, check out this amazing cable!&#10;这款数据线真的太好用了！&#10;Découvrez ce câble incroyable !" style="width:100%;min-height:120px;font-size:13px"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+        <button class="btn btn-primary" onclick="generateBatchAudio()" id="batch-audio-btn">🎙️ 批量生成</button>
+        <span id="batch-audio-status" style="font-size:12px;color:var(--text2)"></span>
+      </div>
+      <div id="batch-audio-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px"></div>
     </div>
   </div>
 
@@ -2476,6 +2488,46 @@ function downloadAudio() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(S.audioBlob);
   a.download = `audio_${Date.now()}.mp3`; a.click();
+}
+
+// 批量配音：每行一条文案，循环调用已验证的 /api/tts/create
+async function generateBatchAudio() {
+  const raw = document.getElementById('batch-audio-text').value || '';
+  const lines = raw.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!lines.length) return toast('请每行输入一条文案', 'error');
+  if (!S.selectedVoice) return toast('请先在上方「选择声音」里选一个', 'error');
+  const btn = document.getElementById('batch-audio-btn');
+  const status = document.getElementById('batch-audio-status');
+  const listEl = document.getElementById('batch-audio-list');
+  btn.disabled = true; listEl.innerHTML = '';
+  let ok = 0, fail = 0;
+  for (let i = 0; i < lines.length; i++) {
+    status.textContent = `生成中 ${i + 1}/${lines.length}…`;
+    try {
+      const d = await apiPost('/api/tts/create', { text: lines[i], voice_type: S.selectedVoice });
+      if (d.error || !d.audio_base64) throw new Error(d.error || '无音频返回');
+      const binary = atob(d.audio_base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+      const row = document.createElement('div');
+      row.style.cssText = 'background:var(--bg);border-radius:8px;padding:10px';
+      row.innerHTML = `<div style="font-size:12px;color:var(--text);margin-bottom:6px">${i + 1}. ${lines[i].replace(/</g, '&lt;').slice(0, 90)}</div><audio controls src="${url}" style="width:100%;height:34px"></audio>`;
+      const dl = document.createElement('button');
+      dl.className = 'btn btn-ghost btn-sm'; dl.style.marginTop = '6px'; dl.textContent = '下载 MP3';
+      dl.onclick = () => { const a = document.createElement('a'); a.href = url; a.download = `audio_${i + 1}_${Date.now()}.mp3`; a.click(); };
+      row.appendChild(dl); listEl.appendChild(row); ok++;
+    } catch (e) {
+      fail++;
+      const row = document.createElement('div');
+      row.style.cssText = 'background:#fff0f0;border:1px solid #ffcccc;border-radius:8px;padding:10px;font-size:12px;color:#cc0000';
+      row.textContent = `${i + 1}. 失败：${lines[i].slice(0, 40)} — ${e.message}`;
+      listEl.appendChild(row);
+    }
+  }
+  status.textContent = `完成：成功 ${ok}，失败 ${fail}`;
+  btn.disabled = false;
+  toast(`批量配音完成：成功 ${ok} / 失败 ${fail}`, fail ? 'error' : 'success');
 }
 
 function copyFromCreative() {
