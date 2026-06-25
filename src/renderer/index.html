@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>新媒体工具</title>
+<title>新媒体工具 · AI 内容工作台</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -203,6 +203,36 @@
 
   /* ── Code block ── */
   pre { background: #1a1a2e; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 12px; overflow-x: auto; color: #a0c4ff; font-family: 'Menlo', monospace; white-space: pre-wrap; }
+
+  /* ── Product workflow UI ── */
+  .sidebar-account { margin: 0 10px 12px; padding: 10px 11px; border: 1px solid var(--border); border-radius: 10px; background: linear-gradient(135deg,#fafaff,#fff5f8); cursor: pointer; transition: all .15s; }
+  .sidebar-account:hover { border-color: rgba(108,99,255,.35); box-shadow: var(--shadow); }
+  .workflow-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-bottom: 18px; }
+  .workflow-card { position: relative; overflow: hidden; min-height: 270px; padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: #fff; box-shadow: var(--shadow); cursor: pointer; transition: transform .18s,box-shadow .18s,border-color .18s; }
+  .workflow-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(108,99,255,.35); }
+  .workflow-card::after { content: ""; position: absolute; width: 130px; height: 130px; right: -48px; top: -55px; border-radius: 50%; background: var(--workflow-glow,rgba(108,99,255,.1)); }
+  .workflow-kicker { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 20px; background: var(--workflow-soft,var(--accent-light)); color: var(--workflow-color,var(--accent)); font-size: 11px; font-weight: 700; }
+  .workflow-title { margin: 14px 0 6px; font-size: 18px; font-weight: 750; letter-spacing: -.2px; }
+  .workflow-desc { min-height: 38px; color: var(--text2); font-size: 12px; line-height: 1.65; }
+  .workflow-steps { display: flex; flex-direction: column; gap: 7px; margin: 16px 0; }
+  .workflow-step { display: flex; align-items: center; gap: 8px; color: #4b5563; font-size: 11.5px; }
+  .workflow-step span:first-child { display: inline-flex; width: 21px; height: 21px; align-items: center; justify-content: center; border-radius: 7px; background: var(--workflow-soft,var(--accent-light)); font-size: 11px; }
+  .workflow-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 4px; font-size: 11.5px; color: var(--text2); }
+  .workflow-enter { color: var(--workflow-color,var(--accent)); font-weight: 700; }
+  .batch-layout { display: grid; grid-template-columns: minmax(320px,.9fr) minmax(420px,1.25fr); gap: 16px; align-items: start; }
+  .batch-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .batch-result { border: 1px solid var(--border); border-radius: 11px; padding: 12px; background: var(--bg); }
+  .batch-result.error { border-color: #fecaca; background: #fff7f7; }
+  .batch-progress { height: 8px; overflow: hidden; border-radius: 8px; background: #eceef3; }
+  .batch-progress > div { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg,var(--accent),var(--accent2)); transition: width .25s; }
+  .account-modal { position: fixed; inset: 0; z-index: 9998; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(18,20,35,.36); backdrop-filter: blur(4px); }
+  .account-modal.open { display: flex; }
+  .account-dialog { width: min(420px,100%); padding: 24px; border: 1px solid rgba(255,255,255,.55); border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(25,28,50,.22); }
+  @media (max-width: 1050px) {
+    .workflow-grid { grid-template-columns: 1fr; }
+    .workflow-card { min-height: 0; }
+    .batch-layout { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -210,6 +240,16 @@
 <!-- Sidebar -->
 <div id="sidebar">
   <div class="logo">新媒体<span>工具</span></div>
+  <div class="sidebar-account" onclick="openAccountModal()">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px">👤</div>
+      <div style="min-width:0;flex:1">
+        <div id="account-display-name" style="font-size:12px;font-weight:700;color:var(--text)">登录 / 注册</div>
+        <div style="font-size:10.5px;color:var(--text2)">会员中心 · 可游客使用</div>
+      </div>
+      <span style="color:var(--text2);font-size:12px">›</span>
+    </div>
+  </div>
 
   <div class="nav-item active" data-page="dashboard">
     <span class="icon">📊</span> 工作台
@@ -220,7 +260,7 @@
     <span class="icon">🎬</span> 智能创作
   </div>
   <div class="nav-item" data-page="materials">
-    <span class="icon">📂</span> 素材库
+    <span class="icon">🎙️</span> AI 批量配音
   </div>
   <div class="nav-item" data-page="mixcut">
     <span class="icon">✂️</span> 批量混剪
@@ -288,52 +328,46 @@
       </div>
     </div>
 
-    <!-- 三大工作流 -->
-    <div class="card" style="margin-bottom:16px">
-      <h2 style="margin-bottom:2px">🚀 三大工作流</h2>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">从对标爆款到成片，三条路任选其一</p>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-
-        <div onclick="showPage('creative')" style="border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:border-color .2s;background:var(--bg)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-size:26px;margin-bottom:10px">🧠</div>
-          <div style="font-weight:700;font-size:15px;margin-bottom:8px">① 拆解对标 · AI 创作</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.75">上传爆款对标 → 豆包拆解结构 → 自动出分镜+文案 → 全场景出片</div>
-          <div style="margin-top:12px;font-size:12px;color:var(--accent);font-weight:600">进入智能创作 →</div>
-        </div>
-
-        <div onclick="showPage('audio')" style="border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:border-color .2s;background:var(--bg)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-size:26px;margin-bottom:10px">🎙️</div>
-          <div style="font-weight:700;font-size:15px;margin-bottom:8px">② 批量 AI 配音</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.75">输入文案 → 选音色/语种（中·英·多语种）→ 批量产出配音 mp3</div>
-          <div style="margin-top:12px;font-size:12px;color:var(--accent);font-weight:600">进入 AI 配音 →</div>
-        </div>
-
-        <div onclick="showPage('mixcut')" style="border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:border-color .2s;background:var(--bg)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-size:26px;margin-bottom:10px">✂️</div>
-          <div style="font-weight:700;font-size:15px;margin-bottom:8px">③ 本地素材 · 批量混剪</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.75">上传实拍素材 → AI 规划混剪 → ffmpeg 合成+自动配音 → 进成品库</div>
-          <div style="margin-top:12px;font-size:12px;color:var(--accent);font-weight:600">进入批量混剪 →</div>
-        </div>
-
+    <div style="display:flex;align-items:end;justify-content:space-between;margin:2px 0 12px">
+      <div>
+        <div style="font-size:17px;font-weight:750">选择今天的工作流</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">三条入口，对应三种最常用的内容生产方式</div>
       </div>
+      <span class="badge badge-api">葡 / 法 / 德 / 英 / 中</span>
     </div>
-
-    <!-- 快速操作 -->
-    <div class="card" style="margin-bottom:16px">
-      <h2>⚡ 快速开始</h2>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-        <button class="btn btn-primary" style="padding:16px;font-size:14px;width:100%" onclick="showPage('creative')">
-          🎬 AI 创作视频
-        </button>
-        <button class="btn btn-ghost" style="padding:16px;font-size:14px;width:100%" onclick="showPage('materials')">
-          📂 管理素材
-        </button>
-        <button class="btn btn-ghost" style="padding:16px;font-size:14px;width:100%" onclick="showPage('mixcut')">
-          ✂️ 混剪成片
-        </button>
-        <button class="btn btn-ghost" style="padding:16px;font-size:14px;width:100%" onclick="showPage('tiktok')">
-          🚀 发布中心
-        </button>
+    <div class="workflow-grid">
+      <div class="workflow-card" style="--workflow-color:#6c63ff;--workflow-soft:#ede9ff;--workflow-glow:rgba(108,99,255,.12)" onclick="showPage('creative')">
+        <span class="workflow-kicker">① 爆款拆解创作</span>
+        <div class="workflow-title">上传爆款，AI 自动出片</div>
+        <div class="workflow-desc">适合从一个对标视频出发，让豆包拆结构、写脚本并生成全新内容。</div>
+        <div class="workflow-steps">
+          <div class="workflow-step"><span>📤</span>上传爆款参考与产品信息</div>
+          <div class="workflow-step"><span>🧠</span>豆包拆解钩子、节奏与卖点</div>
+          <div class="workflow-step"><span>🎬</span>生成场景、字幕、配音与视频</div>
+        </div>
+        <div class="workflow-foot"><span>纯 AI 创作</span><span class="workflow-enter">进入智能创作 →</span></div>
+      </div>
+      <div class="workflow-card" style="--workflow-color:#e05285;--workflow-soft:#fff0f5;--workflow-glow:rgba(240,98,146,.13)" onclick="showPage('materials')">
+        <span class="workflow-kicker">② AI 批量配音</span>
+        <div class="workflow-title">多段文案，一次生成音频</div>
+        <div class="workflow-desc">适合批量制作广告口播、混剪旁白，一行文案生成一个 MP3。</div>
+        <div class="workflow-steps">
+          <div class="workflow-step"><span>📝</span>粘贴多段文案或爆款话术</div>
+          <div class="workflow-step"><span>🌍</span>选择国家、语种、音色和时长</div>
+          <div class="workflow-step"><span>🎧</span>批量试听并逐条下载 MP3</div>
+        </div>
+        <div class="workflow-foot"><span>一鱼多吃 · 多语种</span><span class="workflow-enter">进入批量配音 →</span></div>
+      </div>
+      <div class="workflow-card" style="--workflow-color:#059669;--workflow-soft:#e7f8f1;--workflow-glow:rgba(16,185,129,.13)" onclick="showPage('mixcut')">
+        <span class="workflow-kicker">③ 本地素材混剪</span>
+        <div class="workflow-title">实拍素材 + 自动配音</div>
+        <div class="workflow-desc">适合已有大量素材时，自动规划镜头、混剪、配音并输出成片。</div>
+        <div class="workflow-steps">
+          <div class="workflow-step"><span>📁</span>批量上传本地实拍素材</div>
+          <div class="workflow-step"><span>✨</span>AI 编排镜头并生成旁白稿</div>
+          <div class="workflow-step"><span>✂️</span>ffmpeg 合成并进入成品库</div>
+        </div>
+        <div class="workflow-foot"><span>优先复用自有素材</span><span class="workflow-enter">进入批量混剪 →</span></div>
       </div>
     </div>
 
@@ -635,71 +669,94 @@
 
   </div>
 
-  <!-- 素材库 -->
+  <!-- AI 批量配音 -->
   <div class="page" id="page-materials" style="display:none">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px">
       <div>
-        <h1 class="page-title">素材库</h1>
-        <p class="page-sub">管理产品素材、参考视频、音频配音</p>
+        <h1 class="page-title">AI 批量配音</h1>
+        <p class="page-sub">多段文案 + 国家/语种 + 音色 → 批量生成 MP3 音频素材</p>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="mat-file-count" style="font-size:12px;color:var(--text2);white-space:nowrap">0 个文件</span>
-        <button class="btn btn-ghost btn-sm" onclick="loadMaterialsPage()">↻ 刷新</button>
-      </div>
+      <span class="badge badge-ready">纯音频生产工作流</span>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <!-- 上传区 -->
-      <div class="card" style="padding:16px">
-        <h2>📤 上传素材</h2>
-        <div id="mat-drop-zone" class="upload-box"
-          style="min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin:12px 0"
-          onclick="document.getElementById('mat-file-input').click()"
-          ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
-          ondragleave="this.style.borderColor=''"
-          ondrop="event.preventDefault();handleMaterialPageDrop(event)">
-          <div style="font-size:28px">📎</div>
-          <div style="font-size:13px;font-weight:600">点击上传或拖入素材</div>
-          <div style="font-size:11px;opacity:0.6">视频 MP4/MOV · 图片 JPG/PNG · 音频 MP3</div>
+    <div class="batch-layout">
+      <div>
+        <div class="card">
+          <h2>1. 批量文案</h2>
+          <div class="form-group">
+            <label>每行生成一个独立 MP3</label>
+            <textarea id="batch-tts-texts" style="min-height:210px;line-height:1.7" placeholder="第一条广告口播文案&#10;第二条产品卖点文案&#10;第三条短视频旁白"></textarea>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+            <span id="batch-line-count" style="font-size:11.5px;color:var(--text2)">0 条文案</span>
+            <button class="btn btn-ghost btn-sm" onclick="fillBatchVoiceDemo()">填入示例</button>
+          </div>
         </div>
-        <input type="file" id="mat-file-input" multiple accept="video/*,image/*,audio/*" style="display:none" onchange="handleMaterialPageFiles(this.files)">
-        <div id="mat-upload-list" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto"></div>
+
+        <div class="card">
+          <h2>2. 配音设置</h2>
+          <div class="batch-options">
+            <div class="form-group">
+              <label>市场 / 国家</label>
+              <select id="batch-market">
+                <option value="global">全球通用</option>
+                <option value="us">美国</option>
+                <option value="uk">英国</option>
+                <option value="br">巴西</option>
+                <option value="pt">葡萄牙</option>
+                <option value="fr">法国</option>
+                <option value="de">德国</option>
+                <option value="mx">墨西哥</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>语种</label>
+              <select id="batch-language">
+                <option value="en">英语</option>
+                <option value="pt">葡萄牙语</option>
+                <option value="fr">法语</option>
+                <option value="de">德语</option>
+                <option value="es">西班牙语</option>
+                <option value="zh">中文</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>音色</label>
+              <select id="batch-voice"><option value="">正在加载音色…</option></select>
+            </div>
+            <div class="form-group">
+              <label>目标时长（用于规划文案）</label>
+              <select id="batch-duration">
+                <option value="auto">自动</option>
+                <option value="10">约 10 秒</option>
+                <option value="15">约 15 秒</option>
+                <option value="30">约 30 秒</option>
+                <option value="60">约 60 秒</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:10px 11px;border-radius:9px;background:#fff8e6;border:1px solid #ffe2a8;color:#8a6200;font-size:11.5px;line-height:1.6">
+            时长是文案规划参考，当前语音接口会按文字自然语速朗读，不会强行拉伸音频。
+          </div>
+          <button id="batch-generate-btn" class="btn btn-primary" style="width:100%;margin-top:14px;padding:12px" onclick="generateBatchVoices()">🎙️ 批量生成 MP3</button>
+        </div>
       </div>
 
-      <!-- 素材分类展示 -->
-      <div class="card" style="padding:16px">
-        <h2>🎬 AI 生成素材</h2>
-        <div id="mat-ai-list" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto">
-          <div style="text-align:center;padding:20px;color:var(--text2);font-size:12px">暂无 AI 生成素材，先去「智能创作」生成视频</div>
+      <div class="card" style="min-height:520px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <h2 style="margin:0 0 3px">3. 音频产出</h2>
+            <div id="batch-progress-label" style="font-size:11.5px;color:var(--text2)">等待生成</div>
+          </div>
+          <span id="batch-result-count" class="badge badge-api">0 个音频</span>
         </div>
-      </div>
-
-      <!-- AI 配音 -->
-      <div class="card" style="padding:16px">
-        <h2>🎙️ AI 配音</h2>
-        <div class="form-group" style="margin-bottom:10px">
-          <label>配音文案</label>
-          <textarea id="mat-tts-text" placeholder="输入英文/中文配音文案…" style="min-height:72px;font-size:13px"></textarea>
+        <div class="batch-progress"><div id="batch-progress-bar"></div></div>
+        <div id="batch-results" style="display:flex;flex-direction:column;gap:9px;margin-top:14px">
+          <div class="empty-state" style="padding:70px 20px">
+            <div class="icon">🎧</div>
+            <p>生成后的音频会出现在这里<br>可逐条试听与下载 MP3</p>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-          <span style="font-size:12px;color:var(--text2)">声音：</span>
-          <select id="mat-voice-select" style="font-size:12px;padding:4px 8px;flex:1"></select>
-          <button class="btn btn-ghost btn-sm" style="white-space:nowrap" onclick="loadMatVoices()">加载声音</button>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-primary btn-sm" onclick="generateMatAudio()">🎙️ 生成配音</button>
-          <button class="btn btn-ghost btn-sm" style="display:none" id="mat-download-btn" onclick="downloadMatAudio()">下载 MP3</button>
-        </div>
-        <audio id="mat-audio-elem" controls style="width:100%;margin-top:10px;display:none"></audio>
-      </div>
-
-      <!-- 本地素材 -->
-      <div class="card" style="padding:16px">
-        <h2>💻 本地素材</h2>
-        <div id="mat-local-list" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto">
-          <div style="text-align:center;padding:20px;color:var(--text2);font-size:12px">扫描中…</div>
-        </div>
-        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="scanLocalMatFiles()">🔍 扫描桌面素材</button>
       </div>
     </div>
   </div>
@@ -742,7 +799,7 @@
           </div>
         </div>
       </div>
-      <div style="margin-top:10px;font-size:11.5px;color:#2e7d32;background:#edf7ed;border:1px solid #c5e6c5;border-radius:8px;padding:9px 11px;line-height:1.6">✅ AI 配音已接入火山引擎语音合成（v3）。输入文案、选音色即可生成人声 mp3；中/英/多语种按文案语言自动适配。需要更多语种音色，去火山控制台「音色库」订阅后告诉我加进来。</div>
+      <div style="margin-top:10px;font-size:11.5px;color:#9a6a00;background:#fff8e6;border:1px solid #ffe2a8;border-radius:8px;padding:9px 11px;line-height:1.6">⚠️ 要出「真人朗读的声音」，需先在「系统设置 → AI 配音」填好火山引擎语音 App ID / Access Token。豆包大模型只负责<b>写文案</b>、不产生人声；未配置语音密钥时，此页只能写稿、不出声。</div>
     </div>
 
     <div class="card">
@@ -769,18 +826,6 @@
         <audio id="audio-elem" controls style="width:100%;margin-bottom:8px"></audio>
         <button class="btn btn-ghost btn-sm" onclick="downloadAudio()">下载 MP3</button>
       </div>
-    </div>
-
-    <!-- 批量配音 -->
-    <div class="card">
-      <h2>🔊 批量配音</h2>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">每行一条文案，用上方选中的声音批量生成。中/英/多语种按每行文案的语言自动适配（同一音色可跨语言）。</p>
-      <textarea id="batch-audio-text" placeholder="每行一条，例如：&#10;Hello, check out this amazing cable!&#10;这款数据线真的太好用了！&#10;Découvrez ce câble incroyable !" style="width:100%;min-height:120px;font-size:13px"></textarea>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
-        <button class="btn btn-primary" onclick="generateBatchAudio()" id="batch-audio-btn">🎙️ 批量生成</button>
-        <span id="batch-audio-status" style="font-size:12px;color:var(--text2)"></span>
-      </div>
-      <div id="batch-audio-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px"></div>
     </div>
   </div>
 
@@ -1216,6 +1261,30 @@
 
 </div>
 
+<div id="account-modal" class="account-modal" onclick="if(event.target===this)closeAccountModal()">
+  <div class="account-dialog">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">
+      <div>
+        <div style="font-size:19px;font-weight:750">账号与会员</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">当前为 UI 预览，后续再接用户数据库与支付</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeAccountModal()">✕</button>
+    </div>
+    <div class="form-group" style="margin-bottom:11px">
+      <label>账号或手机号</label>
+      <input id="account-login-id" placeholder="请输入账号或手机号">
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>密码</label>
+      <input id="account-login-password" type="password" placeholder="请输入密码">
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:11px" onclick="previewAccountLogin()">登录 / 注册</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px;border-radius:10px;background:var(--bg)">
+      <div><div style="font-size:12px;font-weight:650">游客模式</div><div style="font-size:10.5px;color:var(--text2);margin-top:2px">不登录也可以使用当前功能</div></div>
+      <span class="badge badge-wait">会员功能待接入</span>
+    </div>
+  </div>
+</div>
 <div id="toast-container"></div>
 
 <script>
@@ -1240,6 +1309,25 @@ function loadState() {
     S.products = d.products || demo_products();
     S.queue = d.queue || [];
   } catch { S.videos = demo_videos(); S.accounts = demo_accounts(); S.products = demo_products(); }
+}
+function openAccountModal() {
+  document.getElementById('account-modal').classList.add('open');
+}
+function closeAccountModal() {
+  document.getElementById('account-modal').classList.remove('open');
+}
+function previewAccountLogin() {
+  const account = document.getElementById('account-login-id').value.trim();
+  const password = document.getElementById('account-login-password').value;
+  if (!account || !password) return toast('请输入账号和密码', 'error');
+  localStorage.setItem('xinmeiti-account-preview', account);
+  document.getElementById('account-display-name').textContent = account;
+  closeAccountModal();
+  toast('账号界面已记录；真实登录与会员后台尚未接入', 'success');
+}
+function restoreAccountPreview() {
+  const account = localStorage.getItem('xinmeiti-account-preview');
+  if (account) document.getElementById('account-display-name').textContent = account;
 }
 function demo_videos() { return [{name:'蓝牙耳机开箱',type:'开箱',dur:28,src:'local'},{name:'产品对比测评',type:'产品展示',dur:45,src:'local'}]; }
 function demo_accounts() { return [{name:'@tech_us_1',niche:'3C',health:'正常'},{name:'@lifestyle_us',niche:'生活方式',health:'正常'}]; }
@@ -2490,46 +2578,6 @@ function downloadAudio() {
   a.download = `audio_${Date.now()}.mp3`; a.click();
 }
 
-// 批量配音：每行一条文案，循环调用已验证的 /api/tts/create
-async function generateBatchAudio() {
-  const raw = document.getElementById('batch-audio-text').value || '';
-  const lines = raw.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!lines.length) return toast('请每行输入一条文案', 'error');
-  if (!S.selectedVoice) return toast('请先在上方「选择声音」里选一个', 'error');
-  const btn = document.getElementById('batch-audio-btn');
-  const status = document.getElementById('batch-audio-status');
-  const listEl = document.getElementById('batch-audio-list');
-  btn.disabled = true; listEl.innerHTML = '';
-  let ok = 0, fail = 0;
-  for (let i = 0; i < lines.length; i++) {
-    status.textContent = `生成中 ${i + 1}/${lines.length}…`;
-    try {
-      const d = await apiPost('/api/tts/create', { text: lines[i], voice_type: S.selectedVoice });
-      if (d.error || !d.audio_base64) throw new Error(d.error || '无音频返回');
-      const binary = atob(d.audio_base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
-      const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
-      const row = document.createElement('div');
-      row.style.cssText = 'background:var(--bg);border-radius:8px;padding:10px';
-      row.innerHTML = `<div style="font-size:12px;color:var(--text);margin-bottom:6px">${i + 1}. ${lines[i].replace(/</g, '&lt;').slice(0, 90)}</div><audio controls src="${url}" style="width:100%;height:34px"></audio>`;
-      const dl = document.createElement('button');
-      dl.className = 'btn btn-ghost btn-sm'; dl.style.marginTop = '6px'; dl.textContent = '下载 MP3';
-      dl.onclick = () => { const a = document.createElement('a'); a.href = url; a.download = `audio_${i + 1}_${Date.now()}.mp3`; a.click(); };
-      row.appendChild(dl); listEl.appendChild(row); ok++;
-    } catch (e) {
-      fail++;
-      const row = document.createElement('div');
-      row.style.cssText = 'background:#fff0f0;border:1px solid #ffcccc;border-radius:8px;padding:10px;font-size:12px;color:#cc0000';
-      row.textContent = `${i + 1}. 失败：${lines[i].slice(0, 40)} — ${e.message}`;
-      listEl.appendChild(row);
-    }
-  }
-  status.textContent = `完成：成功 ${ok}，失败 ${fail}`;
-  btn.disabled = false;
-  toast(`批量配音完成：成功 ${ok} / 失败 ${fail}`, fail ? 'error' : 'success');
-}
-
 function copyFromCreative() {
   // Try to get voiceover text from script output
   const scriptOut = document.getElementById('script-output');
@@ -2806,14 +2854,126 @@ async function loadDashboard() {
   }).join('');
 }
 
-// ── 素材库 (Materials) ─────────────────────────────────────────────────────
+// ── AI 批量配音 ────────────────────────────────────────────────────────────
 S.materialsUploaded = [];
+S.batchVoiceResults = [];
 
 function loadMaterialsPage() {
-  scanLocalMatFiles();
-  loadMatVoices();
-  loadMatAIVideos();
-  document.getElementById('mat-file-count').textContent = `${S.materialsUploaded.length} 个文件`;
+  loadBatchVoices();
+  updateBatchLineCount();
+}
+
+function getBatchTexts() {
+  return document.getElementById('batch-tts-texts').value
+    .split(/\n+/)
+    .map(text => text.trim())
+    .filter(Boolean);
+}
+
+function updateBatchLineCount() {
+  const count = getBatchTexts().length;
+  document.getElementById('batch-line-count').textContent = `${count} 条文案`;
+}
+
+function fillBatchVoiceDemo() {
+  document.getElementById('batch-tts-texts').value = [
+    'This little upgrade made my everyday routine so much easier.',
+    'Wait until you see the difference after just one use.',
+    'If you love practical products, this one deserves a closer look.'
+  ].join('\n');
+  updateBatchLineCount();
+}
+
+async function loadBatchVoices() {
+  const select = document.getElementById('batch-voice');
+  if (!select) return;
+  try {
+    if (!S.voices?.length) {
+      const data = await api('/api/tts/voices');
+      S.voices = data?.voices || [];
+    }
+    select.innerHTML = (S.voices || []).map(v =>
+      `<option value="${v.id}">${v.name} · ${v.lang || v.language || '多语种'}</option>`
+    ).join('') || '<option value="">暂无可用音色</option>';
+  } catch (e) {
+    select.innerHTML = '<option value="">音色加载失败，请检查 AI 配音配置</option>';
+  }
+}
+
+function batchEscape(text) {
+  return String(text).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[ch]);
+}
+
+function renderBatchResults() {
+  const list = document.getElementById('batch-results');
+  const results = S.batchVoiceResults || [];
+  document.getElementById('batch-result-count').textContent =
+    `${results.filter(r => r.status === 'done').length} 个音频`;
+  if (!results.length) return;
+  list.innerHTML = results.map((r, index) => `
+    <div class="batch-result ${r.status === 'error' ? 'error' : ''}">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <span style="width:25px;height:25px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#fff;font-size:11px;font-weight:700;color:var(--accent)">${index + 1}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;line-height:1.55;color:var(--text)">${batchEscape(r.text)}</div>
+          <div style="font-size:10.5px;color:${r.status === 'error' ? 'var(--red)' : 'var(--text2)'};margin-top:4px">${r.status === 'pending' ? '等待生成' : r.status === 'working' ? '正在生成…' : r.status === 'done' ? `${batchEscape(r.language)} · MP3 已生成` : batchEscape(r.error || '生成失败')}</div>
+        </div>
+      </div>
+      ${r.status === 'done' ? `<audio controls src="${r.url}" style="margin-top:10px"></audio><button class="btn btn-ghost btn-sm" style="margin-top:7px" onclick="downloadBatchVoice(${index})">下载 MP3</button>` : ''}
+    </div>
+  `).join('');
+}
+
+async function generateBatchVoices() {
+  const texts = getBatchTexts();
+  const voice = document.getElementById('batch-voice').value;
+  const language = document.getElementById('batch-language').selectedOptions[0].textContent;
+  if (!texts.length) return toast('请至少输入一条文案', 'error');
+  if (!voice) return toast('请先加载并选择音色', 'error');
+  if (texts.length > 30) return toast('单次最多生成 30 条，请分批处理', 'error');
+
+  const btn = document.getElementById('batch-generate-btn');
+  btn.disabled = true;
+  btn.textContent = '正在批量生成…';
+  S.batchVoiceResults = texts.map(text => ({ text, language, status: 'pending' }));
+  renderBatchResults();
+
+  for (let i = 0; i < texts.length; i++) {
+    const current = S.batchVoiceResults[i];
+    current.status = 'working';
+    document.getElementById('batch-progress-label').textContent = `正在生成 ${i + 1} / ${texts.length}`;
+    document.getElementById('batch-progress-bar').style.width = `${Math.round(i / texts.length * 100)}%`;
+    renderBatchResults();
+    try {
+      const response = await apiPost('/api/tts/create', { text: texts[i], voice_type: voice });
+      if (response.error || !response.audio_base64) throw new Error(response.error || '接口没有返回音频');
+      const bytes = Uint8Array.from(atob(response.audio_base64), c => c.charCodeAt(0));
+      current.blob = new Blob([bytes], { type: 'audio/mpeg' });
+      current.url = URL.createObjectURL(current.blob);
+      current.status = 'done';
+    } catch (e) {
+      current.status = 'error';
+      current.error = e.message;
+    }
+    document.getElementById('batch-progress-bar').style.width = `${Math.round((i + 1) / texts.length * 100)}%`;
+    renderBatchResults();
+  }
+  const success = S.batchVoiceResults.filter(r => r.status === 'done').length;
+  document.getElementById('batch-progress-label').textContent = `完成：${success}/${texts.length} 条成功`;
+  btn.disabled = false;
+  btn.textContent = '🎙️ 再次批量生成 MP3';
+  toast(`批量配音完成：${success}/${texts.length} 条成功`, success ? 'success' : 'error');
+}
+
+function downloadBatchVoice(index) {
+  const result = S.batchVoiceResults[index];
+  if (!result?.blob) return;
+  const a = document.createElement('a');
+  a.href = result.url;
+  a.download = `voice_${String(index + 1).padStart(2,'0')}_${Date.now()}.mp3`;
+  a.click();
 }
 
 async function scanLocalMatFiles() {
@@ -2952,6 +3112,8 @@ async function init() {
     S.port = await window.electronAPI.getServerPort();
   }
   loadState();
+  restoreAccountPreview();
+  document.getElementById('batch-tts-texts')?.addEventListener('input', updateBatchLineCount);
   loadCreativeSessions();
   renderCreativeHistory();
   refreshPublishSessions();
