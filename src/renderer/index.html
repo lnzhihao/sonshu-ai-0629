@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>新媒体工具 · AI 内容工作台</title>
+<title>松鼠AI · 社媒提效工作台</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -239,7 +239,8 @@
 
 <!-- Sidebar -->
 <div id="sidebar">
-  <div class="logo">新媒体<span>工具</span></div>
+  <div class="logo" style="padding-bottom:2px">🐿️ 松鼠<span>AI</span></div>
+  <div style="padding:0 20px 14px;font-size:11px;color:var(--text2);letter-spacing:1px">专注社媒提效</div>
   <div class="sidebar-account" onclick="openAccountModal()">
     <div style="display:flex;align-items:center;gap:9px">
       <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px">👤</div>
@@ -301,7 +302,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
       <div>
         <h1 class="page-title">工作台</h1>
-        <p class="page-sub">新媒体内容生产管理中心</p>
+        <p class="page-sub">一站式 AI 社媒内容生产</p>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span id="dashboard-time" style="font-size:12px;color:var(--text2)"></span>
@@ -339,35 +340,20 @@
       <div class="workflow-card" style="--workflow-color:#6c63ff;--workflow-soft:#ede9ff;--workflow-glow:rgba(108,99,255,.12)" onclick="showPage('creative')">
         <span class="workflow-kicker">① 爆款拆解创作</span>
         <div class="workflow-title">上传爆款，AI 自动出片</div>
-        <div class="workflow-desc">适合从一个对标视频出发，让豆包拆结构、写脚本并生成全新内容。</div>
-        <div class="workflow-steps">
-          <div class="workflow-step"><span>📤</span>上传爆款参考与产品信息</div>
-          <div class="workflow-step"><span>🧠</span>豆包拆解钩子、节奏与卖点</div>
-          <div class="workflow-step"><span>🎬</span>生成场景、字幕、配音与视频</div>
-        </div>
-        <div class="workflow-foot"><span>纯 AI 创作</span><span class="workflow-enter">进入智能创作 →</span></div>
+        <div class="workflow-desc">上传对标爆款，AI 拆解结构、自动出片。</div>
+        <div class="workflow-foot"><span>纯 AI 创作</span><span class="workflow-enter">进入 →</span></div>
       </div>
       <div class="workflow-card" style="--workflow-color:#e05285;--workflow-soft:#fff0f5;--workflow-glow:rgba(240,98,146,.13)" onclick="showPage('materials')">
         <span class="workflow-kicker">② AI 批量配音</span>
         <div class="workflow-title">多段文案，一次生成音频</div>
-        <div class="workflow-desc">适合批量制作广告口播、混剪旁白，一行文案生成一个 MP3。</div>
-        <div class="workflow-steps">
-          <div class="workflow-step"><span>📝</span>粘贴多段文案或爆款话术</div>
-          <div class="workflow-step"><span>🌍</span>选择国家、语种、音色和时长</div>
-          <div class="workflow-step"><span>🎧</span>批量试听并逐条下载 MP3</div>
-        </div>
-        <div class="workflow-foot"><span>一鱼多吃 · 多语种</span><span class="workflow-enter">进入批量配音 →</span></div>
+        <div class="workflow-desc">一行文案一个 MP3，批量多语种口播。</div>
+        <div class="workflow-foot"><span>一鱼多吃 · 多语种</span><span class="workflow-enter">进入 →</span></div>
       </div>
       <div class="workflow-card" style="--workflow-color:#059669;--workflow-soft:#e7f8f1;--workflow-glow:rgba(16,185,129,.13)" onclick="showPage('mixcut')">
         <span class="workflow-kicker">③ 本地素材混剪</span>
         <div class="workflow-title">实拍素材 + 自动配音</div>
-        <div class="workflow-desc">适合已有大量素材时，自动规划镜头、混剪、配音并输出成片。</div>
-        <div class="workflow-steps">
-          <div class="workflow-step"><span>📁</span>批量上传本地实拍素材</div>
-          <div class="workflow-step"><span>✨</span>AI 编排镜头并生成旁白稿</div>
-          <div class="workflow-step"><span>✂️</span>ffmpeg 合成并进入成品库</div>
-        </div>
-        <div class="workflow-foot"><span>优先复用自有素材</span><span class="workflow-enter">进入批量混剪 →</span></div>
+        <div class="workflow-desc">已有素材？AI 自动混剪 + 配音出片。</div>
+        <div class="workflow-foot"><span>复用自有素材</span><span class="workflow-enter">进入 →</span></div>
       </div>
     </div>
 
