@@ -1,0 +1,11 @@
+node_modules/
+dist/
+out/
+*.log
+.env
+.DS_Store
+
+# extras
+server.opt.js.bak*
+*.bak.*
+.DS_Store
