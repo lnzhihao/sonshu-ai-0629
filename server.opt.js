@@ -311,6 +311,80 @@ app.post('/api/pay/notify', express.urlencoded({ extended: false }), (req, res) 
   res.send('success');
 });
 
+// ── 个人收款码 过渡方案（人工确认开通）──────────────────────────────────────
+const PAY_QR_FILE = path.join(CONFIG_DIR, 'pay-qr.jpg');
+function payContact() { return cfg('PAY_CONTACT') || '微信 13352774776'; }
+function adminPass() { return cfg('ADMIN_PASSWORD') || 'songshu2024'; }
+function isAdmin(req) {
+  const p = req.headers['x-admin-pass'] || (req.body && req.body.admin_pass) || req.query.admin_pass || '';
+  return !!adminPass() && p === adminPass();
+}
+function grantMember(user, days) {
+  const base = (user.member && user.member_until && new Date(user.member_until) > new Date()) ? new Date(user.member_until) : new Date();
+  base.setDate(base.getDate() + Number(days));
+  user.member = true; user.member_until = base.toISOString();
+  return user.member_until;
+}
+
+// 收款码图片
+app.get('/api/pay/qr', (req, res) => {
+  if (fs.existsSync(PAY_QR_FILE)) return res.sendFile(PAY_QR_FILE);
+  res.status(404).json({ error: '收款码未配置' });
+});
+
+// 手动支付信息（套餐 + 收款码 + 客服联系方式）
+app.get('/api/pay/manual', (req, res) => {
+  res.json({
+    ok: true, contact: payContact(), qr: '/api/pay/qr',
+    tiers: Object.entries(MEMBER_TIERS).filter(([k]) => k !== 'test').map(([k, v]) => ({ key: k, name: v.name, amount: v.amount, days: v.days })),
+  });
+});
+
+// 用户「我已付款」→ 生成一条待确认订单
+app.post('/api/pay/manual-order', (req, res) => {
+  const u = userByToken((req.headers.authorization || '').replace(/^Bearer\s+/i, ''));
+  if (!u) return res.status(401).json({ error: '请先登录再开通会员' });
+  const tier = MEMBER_TIERS[req.body.tier];
+  if (!tier) return res.status(400).json({ error: '套餐不存在' });
+  const orders = loadOrders();
+  const id = 'P' + Date.now() + Math.random().toString(36).slice(2, 6);
+  orders[id] = { id, account: u.account, tier: req.body.tier, tier_name: tier.name, days: tier.days, amount: tier.amount, status: '待确认', manual: true, created_at: new Date().toISOString() };
+  saveOrders(orders);
+  res.json({ ok: true, order_id: id });
+});
+
+// ── 管理后台（凭管理员密码）────────────────────────────────────────────────
+app.post('/api/admin/orders', (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: '管理员密码错误' });
+  const orders = loadOrders();
+  const list = Object.entries(orders).map(([id, o]) => ({ id, ...o })).sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  res.json({ ok: true, contact: payContact(), orders: list });
+});
+app.post('/api/admin/lookup', (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: '管理员密码错误' });
+  const u = loadUsers()[String(req.body.account || '').trim().toLowerCase()];
+  res.json({ ok: true, found: !!u, ...(u ? pubUser(u) : {}) });
+});
+app.post('/api/admin/activate', (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: '管理员密码错误' });
+  const t = MEMBER_TIERS[req.body.tier];
+  if (!t) return res.status(400).json({ error: '套餐不存在' });
+  const users = loadUsers();
+  const user = users[String(req.body.account || '').trim().toLowerCase()];
+  if (!user) return res.status(404).json({ error: '账号不存在：' + (req.body.account || '') });
+  const until = grantMember(user, t.days); saveUsers(users);
+  if (req.body.order_id) { const orders = loadOrders(); if (orders[req.body.order_id]) { orders[req.body.order_id].status = '已开通'; orders[req.body.order_id].activated_at = new Date().toISOString(); saveOrders(orders); } }
+  res.json({ ok: true, account: user.account, member_until: until, days_added: t.days });
+});
+app.post('/api/admin/revoke', (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: '管理员密码错误' });
+  const users = loadUsers();
+  const user = users[String(req.body.account || '').trim().toLowerCase()];
+  if (!user) return res.status(404).json({ error: '账号不存在' });
+  user.member = false; user.member_until = null; saveUsers(users);
+  res.json({ ok: true, account: user.account });
+});
+
 // ── ARK helpers ───────────────────────────────────────────────────────────
 function arkBase() { return cfg('ARK_BASE_URL') || 'https://ark.cn-beijing.volces.com/api/v3'; }
 
@@ -1082,43 +1156,108 @@ app.post('/api/tts/create', async (req, res) => {
 
 // Serve local files so Seedance can access them via URL
 app.use('/local-media', (req, res, next) => {
-  // Only allow access to user's Desktop and Downloads
+  // Only allow access to user's Desktop, Downloads, Movies, and uploaded素材
   const filePath = decodeURIComponent(req.path);
   const allowed = [os.homedir() + '/Desktop', os.homedir() + '/Downloads', os.homedir() + '/Movies'];
-  const fullPath = path.join(os.homedir() + '/Desktop', filePath);
-  const isAllowed = allowed.some(dir => fullPath.startsWith(dir));
-  if (!isAllowed) return res.status(403).json({ error: 'Access denied' });
-  res.sendFile(fullPath, err => { if (err && !res.headersSent) res.status(404).json({ error: 'File not found' }); });
+  // 优先在 Desktop 下查找，再在 uploads 目录查找
+  const desktopPath = path.join(os.homedir() + '/Desktop', filePath);
+  const uploadPath = path.join(MIXCUT_UPLOAD_DIR, filePath);
+  const isAllowed = allowed.some(dir => desktopPath.startsWith(dir)) || desktopPath.startsWith(MIXCUT_UPLOAD_DIR);
+  if (isAllowed && fs.existsSync(desktopPath)) {
+    return res.sendFile(desktopPath, err => { if (err && !res.headersSent) res.status(404).json({ error: 'File not found' }); });
+  }
+  // Try uploaded素材 path
+  if (fs.existsSync(uploadPath)) {
+    return res.sendFile(uploadPath, err => { if (err && !res.headersSent) res.status(404).json({ error: 'File not found' }); });
+  }
+  res.status(404).json({ error: 'File not found' });
+});
+
+// ── 素材库 API ──────────────────────────────────────────────────────────
+// Dedicated endpoint for素材库 page — returns uploaded素材 with metadata
+app.get('/api/materials', (req, res) => {
+  const videoExts = ['.mp4', '.mov', '.avi', '.mkv', '.m4v', '.webm'];
+  const imageExts = ['.jpg', '.jpeg', '.png', '.webp'];
+  const audioExts = ['.mp3', '.wav', '.aac', '.m4a'];
+  try {
+    ensureMixcutUploadDir();
+    const items = [];
+    for (const name of fs.readdirSync(MIXCUT_UPLOAD_DIR)) {
+      if (name.startsWith('.')) continue;
+      const full = path.join(MIXCUT_UPLOAD_DIR, name);
+      const ext = path.extname(name).toLowerCase();
+      let fileType = 'other';
+      if (videoExts.includes(ext)) fileType = 'video';
+      else if (imageExts.includes(ext)) fileType = 'image';
+      else if (audioExts.includes(ext)) fileType = 'audio';
+      if (fileType === 'other') continue;
+      const stat = fs.statSync(full);
+      items.push({
+        id: name.split('_')[0] + '_' + name.split('_')[1], // uploadId from filename pattern timestamp_random.ext
+        name: name,
+        originalName: name, // We don't store original name separately; filename contains timestamp
+        path: full,
+        url: `${PUBLIC_URL}/uploads/mixcut/${encodeURIComponent(name)}`,
+        type: fileType,
+        size: stat.size,
+        mtime: stat.mtimeMs,
+        source: 'upload',
+      });
+    }
+    // Sort by most recent first
+    items.sort((a, b) => b.mtime - a.mtime);
+    res.json({ materials: items, total: items.length });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Serve uploaded素材 directly
+app.use('/uploads/mixcut', (req, res, next) => {
+  const filePath = path.join(MIXCUT_UPLOAD_DIR, decodeURIComponent(req.path));
+  if (!filePath.startsWith(MIXCUT_UPLOAD_DIR)) return res.status(403).json({ error: 'Access denied' });
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
+  res.sendFile(filePath);
 });
 
 // List local media files from Desktop
 app.get('/api/local-files', (req, res) => {
   const dir = req.query.dir || os.homedir() + '/Desktop';
-  const videoExts = ['.mp4', '.mov', '.avi', '.mkv'];
+  const videoExts = ['.mp4', '.mov', '.avi', '.mkv', '.m4v', '.webm'];
   const imageExts = ['.jpg', '.jpeg', '.png', '.webp'];
+  const audioExts = ['.mp3', '.wav', '.aac', '.m4a'];
+  const allExts = [...videoExts, ...imageExts, ...audioExts];
   try {
     const items = [];
     function scan(d, depth = 0) {
       if (depth > 2) return;
+      if (!fs.existsSync(d)) return;
       const entries = fs.readdirSync(d, { withFileTypes: true });
       for (const e of entries) {
         if (e.name.startsWith('.') || e.name === 'node_modules') continue;
         const full = path.join(d, e.name);
         const ext = path.extname(e.name).toLowerCase();
         if (e.isDirectory() && depth < 2) scan(full, depth + 1);
-        else if ([...videoExts, ...imageExts].includes(ext)) {
-          const rel = path.relative(os.homedir() + '/Desktop', full);
+        else if (allExts.includes(ext)) {
+          const rel = path.relative(dir, full);
+          let fileType = 'image';
+          if (videoExts.includes(ext)) fileType = 'video';
+          else if (audioExts.includes(ext)) fileType = 'audio';
           items.push({
             name: e.name,
             path: full,
-            url: mediaUrl(rel),
-            type: videoExts.includes(ext) ? 'video' : 'image',
+            url: `${PUBLIC_URL}/local-media/${encodeURIComponent(path.relative(os.homedir() + '/Desktop', full))}`,
+            type: fileType,
             size: fs.statSync(full).size,
+            source: d === MIXCUT_UPLOAD_DIR ? 'upload' : 'local',
           });
         }
       }
     }
+    // Scan Desktop (local files) AND uploaded素材库
     scan(dir);
+    ensureMixcutUploadDir();
+    scan(MIXCUT_UPLOAD_DIR);
     res.json({ files: items });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1394,16 +1533,39 @@ async function synthVoiceV3(text, speaker) {
       },
     }),
   });
-  // 单向流式返回多段 JSON，每段 data 是一块 base64 音频，拼接成完整 mp3
-  const raw = await resp.text();
+  // v3 API 返回 NDJSON 流式响应，逐行读取拼合音频（resp.text() 会 Premature close）
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    throw new Error(`语音合成 HTTP ${resp.status}: ${errText.slice(0, 200)}`);
+  }
   const chunks = [];
-  const re = /"data"\s*:\s*"([A-Za-z0-9+/=]+)"/g;
-  let m;
-  while ((m = re.exec(raw)) !== null) chunks.push(Buffer.from(m[1], 'base64'));
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let lastEvent = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const obj = JSON.parse(trimmed);
+        if (obj.data) chunks.push(Buffer.from(obj.data, 'base64'));
+        if (obj.code !== undefined) lastEvent = obj;
+      } catch {}
+    }
+  }
+  if (buffer.trim()) {
+    try { const obj = JSON.parse(buffer.trim()); if (obj.data) chunks.push(Buffer.from(obj.data, 'base64')); if (obj.code !== undefined) lastEvent = obj; } catch {}
+  }
   if (!chunks.length) {
-    const cc = raw.match(/"code"\s*:\s*(-?\d+)/);
-    const cm = raw.match(/"message"\s*:\s*"([^"]*)"/);
-    throw new Error(`语音合成无音频返回: ${cc ? 'code ' + cc[1] + ' ' : ''}${cm ? cm[1] : raw.slice(0, 160)}`);
+    const code = lastEvent?.code;
+    const msg = lastEvent?.message;
+    throw new Error(`语音合成无音频返回: ${code ? 'code ' + code + ' ' : ''}${msg || '空响应'}`);
   }
   return Buffer.concat(chunks);
 }
@@ -1927,3 +2089,4 @@ function startServer(preferredPort = 8787, bindHost = '127.0.0.1') {
 }
 
 module.exports = { startServer };
+
