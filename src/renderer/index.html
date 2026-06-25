@@ -1267,7 +1267,17 @@
     <button class="btn btn-primary" style="width:100%;padding:11px" onclick="previewAccountLogin()">登录 / 注册</button>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px;border-radius:10px;background:var(--bg)">
       <div><div style="font-size:12px;font-weight:650">游客模式</div><div style="font-size:10.5px;color:var(--text2);margin-top:2px">不登录也可以使用当前功能</div></div>
-      <span class="badge badge-wait">会员开通需接入支付</span>
+      <span class="badge badge-api">✨ 会员·扫码开通</span>
+    </div>
+    <div id="account-member-section" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:13px;font-weight:650;margin-bottom:8px">✨ 开通会员（支付宝扫码）</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="openPay('month')">月卡 ¥39</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPay('quarter')">季卡 ¥99</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPay('year')">年卡 ¥299</button>
+        <button class="btn btn-ghost btn-sm" style="opacity:.65" onclick="openPay('test')">测试 ¥0.01</button>
+      </div>
+      <div id="pay-qr-box" style="display:none;margin-top:12px;text-align:center"></div>
     </div>
     <div id="account-logout-row" style="display:none;margin-top:12px;text-align:center">
       <span id="account-member-status" style="font-size:11px;color:var(--text2);display:block;margin-bottom:8px"></span>
@@ -1343,6 +1353,8 @@ function updateAccountUI() {
   }
   const lo = document.getElementById('account-logout-row');
   if (lo) lo.style.display = (S.user && S.user.account) ? '' : 'none';
+  const memSec = document.getElementById('account-member-section');
+  if (memSec) memSec.style.display = (S.user && S.user.account) ? '' : 'none';
   const ms = document.getElementById('account-member-status');
   if (ms) ms.textContent = (S.user && S.user.account) ? (S.user.member ? '✨ 会员已开通' : '普通用户（会员开通需接入支付）') : '';
 }
@@ -1352,6 +1364,31 @@ function logoutAccount() {
   updateAccountUI();
   closeAccountModal();
   toast('已退出登录', 'success');
+}
+async function openPay(tier) {
+  const token = localStorage.getItem('xinmeiti-token');
+  if (!token) return toast('请先登录', 'error');
+  const box = document.getElementById('pay-qr-box');
+  box.style.display = ''; box.innerHTML = '<span style="font-size:12px;color:var(--text2)">生成支付二维码中…</span>';
+  try {
+    const r = await fetch(apiBase() + '/api/pay/create', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ tier }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.qr_code) { box.innerHTML = '<span style="color:#c00;font-size:12px">' + (d.error || '下单失败') + '</span>'; return; }
+    box.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(d.qr_code)}" style="width:200px;height:200px;border-radius:8px"><div style="font-size:13px;font-weight:600;margin-top:8px">${d.name} · ¥${d.amount}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">请用支付宝扫码支付，成功后自动开通</div><div id="pay-poll" style="font-size:12px;color:var(--accent);margin-top:8px">⏳ 等待支付…</div>`;
+    const t0 = Date.now();
+    const timer = setInterval(async () => {
+      if (Date.now() - t0 > 180000) { clearInterval(timer); const p = document.getElementById('pay-poll'); if (p) p.textContent = '二维码已过期，请重新点开通'; return; }
+      try {
+        const s = await (await fetch(apiBase() + '/api/pay/status?out_trade_no=' + d.out_trade_no)).json();
+        if (s.status === 'paid') {
+          clearInterval(timer);
+          const p = document.getElementById('pay-poll'); if (p) p.textContent = '✅ 支付成功，会员已开通！';
+          await restoreAccountPreview();
+          setTimeout(() => { box.style.display = 'none'; }, 2500);
+        }
+      } catch (e) {}
+    }, 2500);
+  } catch (e) { box.innerHTML = '<span style="color:#c00;font-size:12px">' + e.message + '</span>'; }
 }
 async function restoreAccountPreview() {
   const token = localStorage.getItem('xinmeiti-token');

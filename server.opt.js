@@ -227,6 +227,90 @@ app.get('/api/auth/me', (req, res) => {
   res.json({ ok: true, ...pubUser(u) });
 });
 
+// ── 支付宝当面付 / 会员开通 ──────────────────────────────────────────────────
+const ALIPAY_GATEWAY = 'https://openapi.alipay.com/gateway.do';
+const ALIPAY_KEY_FILE = path.join(CONFIG_DIR, 'alipay_private_key.pem');
+const ALIPAY_NOTIFY_URL = (cfg('PUBLIC_URL') || 'http://159.75.130.35').replace(/\/$/, '') + '/api/pay/notify';
+const ORDERS_FILE = path.join(CONFIG_DIR, 'orders.json');
+// 会员套餐（可改）
+const MEMBER_TIERS = {
+  month:   { days: 30,  amount: '39.00',  name: '松鼠AI 月卡' },
+  quarter: { days: 90,  amount: '99.00',  name: '松鼠AI 季卡' },
+  year:    { days: 365, amount: '299.00', name: '松鼠AI 年卡' },
+  test:    { days: 1,   amount: '0.01',   name: '松鼠AI 测试' },
+};
+function loadOrders() { try { return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8')); } catch { return {}; } }
+function saveOrders(o) { fs.mkdirSync(CONFIG_DIR, { recursive: true }); fs.writeFileSync(ORDERS_FILE, JSON.stringify(o, null, 2)); }
+function pemWrap(b64, label) {
+  const body = String(b64).replace(/\s+/g, '').match(/.{1,64}/g).join('\n');
+  return `-----BEGIN ${label}-----\n${body}\n-----END ${label}-----`;
+}
+function alipayPrivPem() { const raw = fs.readFileSync(ALIPAY_KEY_FILE, 'utf8').trim(); return raw.includes('BEGIN') ? raw : pemWrap(raw, 'PRIVATE KEY'); }
+function alipayPubPem() { const raw = (cfg('ALIPAY_PUBLIC_KEY') || '').trim(); return raw.includes('BEGIN') ? raw : pemWrap(raw, 'PUBLIC KEY'); }
+function alipayConfigured() { return !!cfg('ALIPAY_APP_ID') && !!cfg('ALIPAY_PUBLIC_KEY') && fs.existsSync(ALIPAY_KEY_FILE); }
+
+async function alipayExec(method, bizContent) {
+  const params = {
+    app_id: cfg('ALIPAY_APP_ID'), method, format: 'JSON', charset: 'utf-8', sign_type: 'RSA2',
+    timestamp: new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 19).replace('T', ' '),
+    version: '1.0', notify_url: ALIPAY_NOTIFY_URL, biz_content: JSON.stringify(bizContent),
+  };
+  const signStr = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join('&');
+  params.sign = crypto.createSign('RSA-SHA256').update(signStr, 'utf8').sign(alipayPrivPem(), 'base64');
+  const body = Object.keys(params).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
+  const r = await fetch(ALIPAY_GATEWAY, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' }, body });
+  return JSON.parse(await r.text());
+}
+
+app.get('/api/pay/tiers', (req, res) => {
+  res.json({ ok: true, configured: alipayConfigured(), tiers: Object.entries(MEMBER_TIERS).map(([k, v]) => ({ key: k, name: v.name, amount: v.amount, days: v.days })) });
+});
+
+app.post('/api/pay/create', async (req, res) => {
+  const u = userByToken((req.headers.authorization || '').replace(/^Bearer\s+/i, ''));
+  if (!u) return res.status(401).json({ error: '请先登录再开通会员' });
+  const tier = MEMBER_TIERS[req.body.tier];
+  if (!tier) return res.status(400).json({ error: '套餐不存在' });
+  if (!alipayConfigured()) return res.status(503).json({ error: '支付暂未配置' });
+  const out_trade_no = 'M' + Date.now() + Math.random().toString(36).slice(2, 8);
+  try {
+    const resp = await alipayExec('alipay.trade.precreate', { out_trade_no, total_amount: tier.amount, subject: tier.name });
+    const node = resp.alipay_trade_precreate_response || {};
+    if (node.code !== '10000' || !node.qr_code) return res.status(502).json({ error: `支付宝：${node.sub_msg || node.msg || '下单失败'}` });
+    const orders = loadOrders();
+    orders[out_trade_no] = { account: u.account, tier: req.body.tier, days: tier.days, amount: tier.amount, status: 'pending', created_at: new Date().toISOString() };
+    saveOrders(orders);
+    res.json({ ok: true, out_trade_no, qr_code: node.qr_code, amount: tier.amount, name: tier.name });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/pay/status', (req, res) => {
+  const o = loadOrders()[req.query.out_trade_no];
+  res.json({ status: o ? o.status : 'unknown' });
+});
+
+app.post('/api/pay/notify', express.urlencoded({ extended: false }), (req, res) => {
+  const params = { ...req.body };
+  const sign = params.sign; delete params.sign; delete params.sign_type;
+  const signStr = Object.keys(params).filter(k => params[k] !== '' && params[k] != null).sort().map(k => `${k}=${params[k]}`).join('&');
+  let ok = false;
+  try { ok = crypto.createVerify('RSA-SHA256').update(signStr, 'utf8').verify(alipayPubPem(), sign, 'base64'); } catch (e) {}
+  if (!ok || req.body.app_id !== cfg('ALIPAY_APP_ID')) return res.send('failure');
+  if (req.body.trade_status === 'TRADE_SUCCESS' || req.body.trade_status === 'TRADE_FINISHED') {
+    const orders = loadOrders(); const o = orders[req.body.out_trade_no];
+    if (o && o.status !== 'paid' && String(req.body.total_amount) === String(o.amount)) {
+      o.status = 'paid'; o.trade_no = req.body.trade_no; o.paid_at = new Date().toISOString(); saveOrders(orders);
+      const users = loadUsers(); const user = users[String(o.account).toLowerCase()];
+      if (user) {
+        const base = (user.member && user.member_until && new Date(user.member_until) > new Date()) ? new Date(user.member_until) : new Date();
+        base.setDate(base.getDate() + o.days);
+        user.member = true; user.member_until = base.toISOString(); saveUsers(users);
+      }
+    }
+  }
+  res.send('success');
+});
+
 // ── ARK helpers ───────────────────────────────────────────────────────────
 function arkBase() { return cfg('ARK_BASE_URL') || 'https://ark.cn-beijing.volces.com/api/v3'; }
 
