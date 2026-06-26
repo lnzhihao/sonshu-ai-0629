@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>松鼠AI — 专注社媒提效</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23cf9b3f'/><text x='16' y='23' font-size='20' font-weight='700' fill='%23fff' text-anchor='middle' font-family='sans-serif'>松</text></svg>">
 <style>
 /* ===== CSS Variables ===== */
 :root {
-  --bg:#f0f2f5; --card-bg:#fff; --sidebar-bg:#1a1d28;
-  --border:#e2e4e9; --border2:#cdd0d6;
-  --accent:#6366f1; --accent-hover:#4f46e5; --accent-light:#eef2ff;
-  --text:#1e1e2e; --text2:#6b7280; --text-sidebar:#8890a5; --text-sidebar-active:#f0f2ff;
+  --bg:#f5f3ef; --card-bg:#fff; --sidebar-bg:#141316;
+  --border:#e9e4db; --border2:#d8d1c4;
+  --accent:#cf9b3f; --accent-hover:#b3822c; --accent-light:#f9f1de;
+  --text:#221f1a; --text2:#6f675b; --text-sidebar:#9b948a; --text-sidebar-active:#f4ead2;
   --green:#10b981; --red:#ef4444; --yellow:#f59e0b;
   --radius:12px; --radius-sm:8px;
   --shadow:0 1px 2px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.04);
@@ -28,25 +29,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .side-section-label{padding:16px 20px 6px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#4b5060}
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;margin:1px 8px;border-radius:var(--radius-sm);font-size:13.5px;color:var(--text-sidebar);cursor:pointer;transition:var(--transition);font-weight:450;position:relative}
 .nav-item:hover{background:rgba(255,255,255,.05);color:#d0d4e0}
-.nav-item.active{background:rgba(99,102,241,.18);color:var(--text-sidebar-active);font-weight:600}
+.nav-item.active{background:rgba(207,155,63,.18);color:var(--text-sidebar-active);font-weight:600}
 .nav-item .icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 .nav-item .badge-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:auto}
 .side-spacer{flex:1}
 .side-footer{padding:12px 12px 8px;border-top:1px solid rgba(255,255,255,.06);margin:0 8px}
-.side-member{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:rgba(99,102,241,.1);cursor:pointer;transition:var(--transition);margin-bottom:8px}
-.side-member:hover{background:rgba(99,102,241,.18)}
-.side-member .m-icon{font-size:18px}
-.side-member .m-info{flex:1;min-width:0}
-.side-member .m-title{font-size:12.5px;font-weight:600;color:#d0d4e0}
-.side-member .m-sub{font-size:11px;color:#6b7180;margin-top:1px}
-.side-member .m-arrow{color:#6b7180;font-size:12px}
-.side-token{padding:8px 12px;margin-bottom:8px}
-.side-token .token-label{font-size:10.5px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;justify-content:space-between}
+.side-member-card{background:rgba(207,155,63,.10);border:1px solid rgba(207,155,63,.20);border-radius:10px;padding:11px 12px;margin-bottom:9px}
+.side-member-card .smc-top{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.side-member-card .smc-icon{font-size:17px;flex-shrink:0}
+.side-member-card .smc-info{flex:1;min-width:0}
+.side-member-card .smc-title{font-size:12.5px;font-weight:700;color:#ece5d6}
+.side-member-card .smc-sub{font-size:10.5px;color:#9b948a;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-member-card .smc-btn{display:block;width:100%;padding:8px;text-align:center;font-size:12.5px;font-weight:700;color:#241a06;background:linear-gradient(135deg,#e3b551,#cf9b3f);border:none;border-radius:7px;cursor:pointer;transition:var(--transition)}
+.side-member-card .smc-btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.side-token{padding:4px 4px 6px;margin-bottom:6px}
+.side-token .token-label{font-size:10.5px;color:#8a847a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;justify-content:space-between}
 .side-token .token-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:4px}
 .side-token .token-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s}
 .side-token .token-num{font-size:11px;color:var(--text-sidebar)}
-.side-recharge{display:block;width:100%;padding:8px;text-align:center;font-size:12px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);margin-bottom:8px}
-.side-recharge:hover{opacity:.9;transform:translateY(-1px)}
 .status-bar{display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:11px;color:#6b7280}
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--red)}.status-dot.ok{background:var(--green)}
 
@@ -175,13 +175,11 @@ tr:hover td{background:#f9fafb}
 @media(max-width:768px){
   #sidebar{width:56px;min-width:56px;padding:12px 0}
   .side-logo{padding:0 8px 16px;justify-content:center}
-  .side-logo .logo-text,.side-section-label,.side-member .m-info,.side-member .m-arrow,.side-token,.side-recharge .text,.nav-item span:not(.icon){display:none}
+  .side-logo .logo-text,.side-section-label,.side-member-card,.side-token,.nav-item span:not(.icon){display:none}
   .nav-item{justify-content:center;padding:10px 0;margin:1px 6px}
   .nav-item .icon{font-size:18px;width:auto}
   .side-footer{padding:8px 6px}
-  .side-member{justify-content:center;padding:8px}
-  .side-recharge{font-size:0;padding:8px}
-  .side-recharge::before{content:'💰';font-size:16px}
+  /* 折叠态隐藏会员卡/Token，仅留图标导航 */
   .page{padding:20px 16px;max-width:100%}
   .hero-grid{grid-template-columns:1fr}
   .two-col,.three-col,.stats-row{grid-template-columns:1fr}
@@ -232,7 +230,7 @@ tr:hover td{background:#f9fafb}
 
 <!-- ============ SIDEBAR ============ -->
 <div id="sidebar">
-  <div class="side-logo"><div class="logo-icon">🐿️</div><div class="logo-text">松鼠AI</div></div>
+  <div class="side-logo"><div class="logo-icon">松</div><div class="logo-text">松鼠AI</div></div>
 
   <div class="side-section-label">工作区</div>
   <div class="nav-item active" data-page="dashboard"><span class="icon">🏠</span>工作台</div>
@@ -247,15 +245,17 @@ tr:hover td{background:#f9fafb}
 
   <div class="side-spacer"></div>
 
-  <!-- 会员 & Token & 充值 -->
+  <!-- 会员 & Token -->
   <div class="side-footer">
-    <div class="side-member" onclick="showPage('settings')">
-      <div class="m-icon">💎</div>
-      <div class="m-info">
-        <div class="m-title" id="member-status-text">免费用户</div>
-        <div class="m-sub" id="member-expire-text">开通会员解锁全部功能</div>
+    <div class="side-member-card">
+      <div class="smc-top" onclick="showPage('settings')" style="cursor:pointer">
+        <span class="smc-icon">💎</span>
+        <div class="smc-info">
+          <div class="smc-title" id="member-status-text">免费用户</div>
+          <div class="smc-sub" id="member-expire-text">开通会员解锁全部功能</div>
+        </div>
       </div>
-      <div class="m-arrow">›</div>
+      <button class="smc-btn" id="member-cta" onclick="openPay('monthly')">开通会员</button>
     </div>
 
     <div class="side-token">
@@ -264,7 +264,6 @@ tr:hover td{background:#f9fafb}
       <div class="token-num" id="token-num">加载中…</div>
     </div>
 
-    <button class="side-recharge" onclick="openPay('monthly')">💰 充值会员</button>
     <div class="status-bar"><span class="status-dot" id="status-dot"></span><span id="status-text">连接中…</span></div>
   </div>
 </div>
@@ -630,6 +629,38 @@ tr:hover td{background:#f9fafb}
 </div>
 
 <!-- Toast -->
+<!-- 在线客服浮窗 -->
+<style>
+#cs-widget{position:fixed;right:22px;bottom:22px;z-index:9998;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+#cs-fab{width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#e3b551,#cf9b3f);color:#241a06;font-size:22px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);position:relative;transition:.18s}
+#cs-fab:hover{transform:translateY(-2px)}
+#cs-fab .cs-fab-dot{position:absolute;top:5px;right:6px;width:10px;height:10px;background:#22c55e;border:2px solid #fff;border-radius:50%}
+#cs-panel{display:none;width:236px;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.18);overflow:hidden}
+#cs-widget.open #cs-panel{display:block}
+#cs-panel .cs-head{display:flex;align-items:center;gap:7px;padding:12px 14px;background:#141316;color:#f4ead2;font-size:13.5px;font-weight:700}
+#cs-panel .cs-head .cs-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}
+#cs-panel .cs-head .cs-x{margin-left:auto;cursor:pointer;color:#9b948a;font-size:13px}
+#cs-panel .cs-body{padding:14px}
+#cs-panel .cs-line{font-size:12px;color:var(--text2);margin-bottom:9px}
+#cs-panel .cs-wx{font-size:14px;color:var(--text);margin-bottom:11px}
+#cs-panel .cs-wx b{color:var(--accent-hover);letter-spacing:.5px}
+#cs-panel .cs-copy{width:100%;padding:9px;border:none;border-radius:8px;background:linear-gradient(135deg,#e3b551,#cf9b3f);color:#241a06;font-weight:700;font-size:13px;cursor:pointer}
+#cs-panel .cs-copy:hover{filter:brightness(1.06)}
+#cs-panel .cs-tip{font-size:11px;color:var(--text2);margin-top:10px;text-align:center}
+</style>
+<div id="cs-widget">
+  <div id="cs-panel">
+    <div class="cs-head"><span class="cs-dot"></span> 在线客服 <span class="cs-x" onclick="toggleCS(false)">✕</span></div>
+    <div class="cs-body">
+      <div class="cs-line">工作日 9:00–21:00 在线，有问题随时找我们 👋</div>
+      <div class="cs-wx">客服微信：<b id="cs-wx-id">13352774776</b></div>
+      <button class="cs-copy" onclick="copyCS()">复制微信号</button>
+      <div class="cs-tip">加微信咨询 · 开通会员 · 售后</div>
+    </div>
+  </div>
+  <button id="cs-fab" onclick="toggleCS()" title="联系客服"><span class="cs-fab-dot"></span>💬</button>
+</div>
+
 <div id="toast-container"></div>
 
 <!-- ============ SCRIPTS ============ -->
@@ -643,6 +674,8 @@ const apiDelete=async p=>{const r=await fetch(apiBase()+p,{method:'DELETE',heade
 
 // ── Toast ──
 function toast(m,t){const c=document.getElementById('toast-container');const e=document.createElement('div');e.className='toast '+(t||'info');e.textContent=m;c.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateY(12px)';setTimeout(()=>e.remove(),300)},3000)}
+function toggleCS(force){const w=document.getElementById('cs-widget');if(!w)return;const open=force===undefined?!w.classList.contains('open'):force;w.classList.toggle('open',open)}
+function copyCS(){const id=(document.getElementById('cs-wx-id').textContent||'').trim();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(id).then(()=>toast('微信号已复制 ✅','success')).catch(()=>toast('请手动复制：'+id,'error'))}else{toast('请手动复制微信号：'+id,'info')}}
 
 // ── Navigation ──
 function showPage(name){
@@ -705,6 +738,7 @@ function updateAccountUI(){
   const un=document.getElementById('dash-username');
   if(S.user?.member){el.textContent=S.user.member==='yearly'?'年费会员':S.user.member==='quarterly'?'季费会员':'月费会员';ex.textContent=S.user.member_until?'到期：'+new Date(S.user.member_until).toLocaleDateString():'已开通';el.style.color='#f59e0b'}
   else{el.textContent='免费用户';ex.textContent='开通会员解锁全部功能';el.style.color=''}
+  const cta=document.getElementById('member-cta');if(cta)cta.textContent=S.user?.member?'续费会员':'开通会员';
   if(un)un.textContent=S.user?.account?'，'+S.user.account:'';
   if(S.user?.token)document.getElementById('account-modal-title').textContent=S.user.account;
   const mi=document.getElementById('member-info');if(mi)mi.innerHTML=S.user?.member?`当前：${S.user.member==='yearly'?'年费会员':S.user.member==='quarterly'?'季费会员':'月费会员'}`:'当前：免费用户';
