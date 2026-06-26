@@ -191,7 +191,11 @@ const USERS_FILE = path.join(CONFIG_DIR, 'users.json');
 function loadUsers() { try { return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch { return {}; } }
 function saveUsers(u) { fs.mkdirSync(CONFIG_DIR, { recursive: true }); fs.writeFileSync(USERS_FILE, JSON.stringify(u, null, 2)); }
 function hashPw(pw, salt) { return crypto.scryptSync(String(pw), salt, 32).toString('hex'); }
-function pubUser(u) { let member = !!u.member; if (member && u.member_until && new Date(u.member_until) < new Date()) member = false; return { account: u.account, member, member_until: u.member_until || null }; }
+function pubUser(u) { let member = !!u.member; if (member && u.member_until && new Date(u.member_until) < new Date()) member = false; return { account: u.account, member, member_until: u.member_until || null, pinecones: u.pinecones || 0 }; }
+// ── 松果(积分)系统 ──
+function grantDaily(u) { const today = new Date().toISOString().slice(0, 10); if (u.last_daily !== today) { u.pinecones = (u.pinecones || 0) + 30; u.last_daily = today; return 30; } return 0; }
+const PINE_COST = { video: 300, audio: 10, mixcut: 10 };
+function userByTokenFrom(users, token) { if (!token) return null; for (const k in users) if (users[k].token === token) return users[k]; return null; }
 function userByToken(token) { if (!token) return null; const us = loadUsers(); for (const k in us) if (us[k].token === token) return us[k]; return null; }
 
 app.post('/api/auth/register', (req, res) => {
@@ -203,9 +207,9 @@ app.post('/api/auth/register', (req, res) => {
   if (users[key]) return res.status(409).json({ error: '该账号已存在，请直接登录' });
   const salt = crypto.randomBytes(16).toString('hex');
   const token = crypto.randomBytes(24).toString('hex');
-  users[key] = { account: String(account).trim(), salt, hash: hashPw(password, salt), token, member: false, member_until: null, created_at: new Date().toISOString() };
+  users[key] = { account: String(account).trim(), salt, hash: hashPw(password, salt), token, member: false, member_until: null, pinecones: 300, last_daily: new Date().toISOString().slice(0, 10), created_at: new Date().toISOString() };
   saveUsers(users);
-  res.json({ ok: true, token, ...pubUser(users[key]) });
+  res.json({ ok: true, token, ...pubUser(users[key]), welcome: 300 });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -217,15 +221,42 @@ app.post('/api/auth/login', (req, res) => {
   if (!u) return res.status(404).json({ error: '账号不存在', code: 'no_account' });
   if (u.hash !== hashPw(password, u.salt)) return res.status(401).json({ error: '密码错误' });
   u.token = crypto.randomBytes(24).toString('hex');
+  const dailyGot = grantDaily(u);
   saveUsers(users);
-  res.json({ ok: true, token: u.token, ...pubUser(u) });
+  res.json({ ok: true, token: u.token, ...pubUser(u), daily: dailyGot });
 });
 
 app.get('/api/auth/me', (req, res) => {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  const u = userByToken(token);
+  const users = loadUsers();
+  const u = userByTokenFrom(users, token);
   if (!u) return res.status(401).json({ error: '未登录' });
-  res.json({ ok: true, ...pubUser(u) });
+  const dailyGot = grantDaily(u);
+  if (dailyGot) saveUsers(users);
+  res.json({ ok: true, ...pubUser(u), daily: dailyGot });
+});
+
+// 消耗松果(每次生成)
+app.post('/api/usage/consume', (req, res) => {
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const users = loadUsers();
+  const u = userByTokenFrom(users, token);
+  if (!u) return res.status(401).json({ error: '请先登录', need: 'login' });
+  const cost = PINE_COST[req.body && req.body.kind] || 50;
+  if ((u.pinecones || 0) < cost) return res.json({ ok: false, need: 'recharge', pinecones: u.pinecones || 0, cost });
+  u.pinecones = (u.pinecones || 0) - cost; saveUsers(users);
+  res.json({ ok: true, pinecones: u.pinecones, cost });
+});
+
+// 每日签到领松果
+app.post('/api/checkin', (req, res) => {
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const users = loadUsers();
+  const u = userByTokenFrom(users, token);
+  if (!u) return res.status(401).json({ error: '请先登录', need: 'login' });
+  const got = grantDaily(u);
+  if (got) saveUsers(users);
+  res.json({ ok: true, granted: got, pinecones: u.pinecones || 0 });
 });
 
 // ── 支付宝当面付 / 会员开通 ──────────────────────────────────────────────────
@@ -374,7 +405,7 @@ app.post('/api/admin/activate', (req, res) => {
   const users = loadUsers();
   const user = users[String(req.body.account || '').trim().toLowerCase()];
   if (!user) return res.status(404).json({ error: '账号不存在：' + (req.body.account || '') });
-  const until = grantMember(user, t.days); saveUsers(users);
+  const until = grantMember(user, t.days); user.pinecones = (user.pinecones || 0) + (t.pinecones || 0); saveUsers(users);
   if (req.body.order_id) { const orders = loadOrders(); if (orders[req.body.order_id]) { orders[req.body.order_id].status = '已开通'; orders[req.body.order_id].activated_at = new Date().toISOString(); saveOrders(orders); } }
   res.json({ ok: true, account: user.account, member_until: until, days_added: t.days });
 });
