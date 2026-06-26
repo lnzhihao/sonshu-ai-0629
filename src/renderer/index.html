@@ -19,7 +19,7 @@
   --transition:.18s cubic-bezier(.4,0,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
 
 /* ===== Sidebar ===== */
 #sidebar{width:232px;min-width:232px;background:var(--sidebar-bg);display:flex;flex-direction:column;padding:20px 0;overflow-y:auto;z-index:10}
@@ -52,7 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 /* ===== Main ===== */
 #main{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column}
-.page{display:none;padding:32px 40px;max-width:1100px;width:100%;animation:fadeIn .2s}
+.page{display:none;padding:32px 40px;max-width:1180px;width:100%;margin:0 auto;animation:fadeIn .2s}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .page-header{margin-bottom:28px}
@@ -172,22 +172,28 @@ tr:hover td{background:#f9fafb}
 .platform-card.connected .pl-status{color:var(--green)}
 
 /* ===== Responsive / Mobile ===== */
+#mobile-bar,#drawer-backdrop{display:none}
 @media(max-width:768px){
-  #sidebar{width:56px;min-width:56px;padding:12px 0}
-  .side-logo{padding:0 8px 16px;justify-content:center}
-  .side-logo .logo-text,.side-section-label,.side-member-card,.side-token,.nav-item span:not(.icon){display:none}
-  .nav-item{justify-content:center;padding:10px 0;margin:1px 6px}
-  .nav-item .icon{font-size:18px;width:auto}
-  .side-footer{padding:8px 6px}
-  /* 折叠态隐藏会员卡/Token，仅留图标导航 */
-  .page{padding:20px 16px;max-width:100%}
+  #mobile-bar{display:flex;align-items:center;gap:12px;position:fixed;top:0;left:0;right:0;height:52px;padding:0 14px;background:var(--sidebar-bg);z-index:40}
+  #mb-menu{background:none;border:none;color:#f4ead2;font-size:23px;line-height:1;cursor:pointer;padding:2px 4px}
+  .mb-logo{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:15px}
+  .mb-logo .mb-icon{width:26px;height:26px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
+  #sidebar{position:fixed;left:0;top:0;bottom:0;width:230px;min-width:230px;padding:18px 0;transform:translateX(-100%);transition:transform .25s ease;z-index:50;box-shadow:2px 0 22px rgba(0,0,0,.32)}
+  body.drawer-open #sidebar{transform:translateX(0)}
+  body.drawer-open #drawer-backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:45}
+  #main{padding-top:52px}
+  .page{padding:18px 14px;max-width:100%}
+  .page-title{font-size:21px}
   .hero-grid{grid-template-columns:1fr}
-  .two-col,.three-col,.stats-row{grid-template-columns:1fr}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
   .creative-body{flex-direction:column}
   .creative-left{width:100%}
   .mixcut-layout{grid-template-columns:1fr;height:auto}
-  .platform-grid{grid-template-columns:repeat(3,1fr)}
+  .platform-grid{grid-template-columns:repeat(2,1fr)}
   .mat-grid{grid-template-columns:repeat(2,1fr)}
+  .modal-dialog{width:92vw}
+  #cs-widget{right:14px;bottom:14px}
 }
 @media(max-width:1000px){.page{padding:24px 20px}.hero-grid{grid-template-columns:1fr}.two-col,.three-col{grid-template-columns:1fr}.stats-row{grid-template-columns:repeat(2,1fr)}}
 
@@ -229,6 +235,13 @@ tr:hover td{background:#f9fafb}
 <body>
 
 <!-- ============ SIDEBAR ============ -->
+<!-- 移动端顶栏 + 抽屉遮罩 -->
+<div id="mobile-bar">
+  <button id="mb-menu" onclick="toggleDrawer()" aria-label="菜单">☰</button>
+  <div class="mb-logo"><span class="mb-icon">松</span>松鼠AI</div>
+</div>
+<div id="drawer-backdrop" onclick="toggleDrawer(false)"></div>
+
 <div id="sidebar">
   <div class="side-logo"><div class="logo-icon">松</div><div class="logo-text">松鼠AI</div></div>
 
@@ -652,10 +665,11 @@ tr:hover td{background:#f9fafb}
   <div id="cs-panel">
     <div class="cs-head"><span class="cs-dot"></span> 在线客服 <span class="cs-x" onclick="toggleCS(false)">✕</span></div>
     <div class="cs-body">
-      <div class="cs-line">工作日 9:00–21:00 在线，有问题随时找我们 👋</div>
-      <div class="cs-wx">客服微信：<b id="cs-wx-id">13352774776</b></div>
+      <div class="cs-line" style="text-align:center">工作日 9:00–21:00 在线，<b>扫码加我</b> 👇</div>
+      <img src="/wechat-qr.jpg" alt="客服微信二维码" style="width:168px;height:auto;display:block;margin:8px auto 10px;border-radius:8px;border:1px solid var(--border)">
+      <div class="cs-wx" style="text-align:center;font-size:12px;color:var(--text2)">或加微信号 <b id="cs-wx-id" style="color:var(--accent-hover)">13352774776</b></div>
       <button class="cs-copy" onclick="copyCS()">复制微信号</button>
-      <div class="cs-tip">加微信咨询 · 开通会员 · 售后</div>
+      <div class="cs-tip">扫码加好友 · 咨询 / 开通会员 / 售后</div>
     </div>
   </div>
   <button id="cs-fab" onclick="toggleCS()" title="联系客服"><span class="cs-fab-dot"></span>💬</button>
@@ -674,11 +688,13 @@ const apiDelete=async p=>{const r=await fetch(apiBase()+p,{method:'DELETE',heade
 
 // ── Toast ──
 function toast(m,t){const c=document.getElementById('toast-container');const e=document.createElement('div');e.className='toast '+(t||'info');e.textContent=m;c.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateY(12px)';setTimeout(()=>e.remove(),300)},3000)}
+function toggleDrawer(force){const open=force===undefined?!document.body.classList.contains('drawer-open'):force;document.body.classList.toggle('drawer-open',open)}
 function toggleCS(force){const w=document.getElementById('cs-widget');if(!w)return;const open=force===undefined?!w.classList.contains('open'):force;w.classList.toggle('open',open)}
 function copyCS(){const id=(document.getElementById('cs-wx-id').textContent||'').trim();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(id).then(()=>toast('微信号已复制 ✅','success')).catch(()=>toast('请手动复制：'+id,'error'))}else{toast('请手动复制微信号：'+id,'info')}}
 
 // ── Navigation ──
 function showPage(name){
+  document.body.classList.remove('drawer-open');
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   const pg=document.getElementById('page-'+name);
