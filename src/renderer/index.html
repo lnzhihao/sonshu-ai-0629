@@ -665,62 +665,86 @@ tr:hover td{background:#f9fafb}
 </div>
 
 <!-- Toast -->
-<!-- Landing 营销页(未登录访客先看到) -->
+<!-- Landing 营销页(未登录访客先看到) - 清爽浅色+渐变 -->
 <style>
-#landing{display:flex;position:fixed;inset:0;z-index:90;flex-direction:column;background:#141316;color:#f3ead6;overflow-y:auto}
-#landing .lp-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 6vw;position:sticky;top:0;background:rgba(20,19,22,.85);backdrop-filter:blur(8px);z-index:2}
-#landing .lp-logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800;color:#fff}
-#landing .lp-logo-ic{width:32px;height:32px;background:linear-gradient(135deg,#e3b551,#cf9b3f);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#241a06;font-size:17px}
-#landing .lp-nav-btn{padding:9px 18px;border:none;border-radius:9px;background:linear-gradient(135deg,#e3b551,#cf9b3f);color:#241a06;font-weight:700;font-size:14px;cursor:pointer}
-#landing .lp-hero{text-align:center;padding:64px 6vw 48px;max-width:860px;margin:0 auto}
-#landing .lp-badge{display:inline-block;padding:5px 14px;border:1px solid rgba(207,155,63,.5);border-radius:99px;font-size:13px;color:#e3b551;margin-bottom:24px}
-#landing .lp-hero h1{font-size:clamp(30px,5vw,52px);font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:20px;color:#fff}
-#landing .lp-grad{background:linear-gradient(135deg,#f0c668,#cf9b3f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-#landing .lp-sub{font-size:clamp(15px,2vw,18px);color:#b8b0a2;line-height:1.7;margin-bottom:32px}
-#landing .lp-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
-#landing .lp-btn-primary{padding:14px 30px;border:none;border-radius:11px;background:linear-gradient(135deg,#e3b551,#cf9b3f);color:#241a06;font-weight:800;font-size:16px;cursor:pointer;transition:.18s}
-#landing .lp-btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(207,155,63,.35)}
-#landing .lp-btn-ghost{padding:14px 26px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:transparent;color:#f3ead6;font-weight:600;font-size:15px;cursor:pointer}
-#landing .lp-trust{font-size:13px;color:#8a8276}
-#landing .lp-features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;padding:20px 6vw 56px;width:100%}
-#landing .lp-feat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 22px;text-align:center}
-#landing .lp-feat-ic{font-size:34px;margin-bottom:14px}
-#landing .lp-feat h3{font-size:18px;font-weight:700;color:#fff;margin-bottom:10px}
-#landing .lp-feat p{font-size:13.5px;color:#a89f90;line-height:1.7}
-#landing .lp-pricing{text-align:center;padding:48px 6vw;background:rgba(207,155,63,.06);border-top:1px solid rgba(255,255,255,.06)}
-#landing .lp-pricing h2{font-size:clamp(22px,3vw,30px);font-weight:800;margin-bottom:12px;color:#fff}
-#landing .lp-pricing p{font-size:15px;color:#b8b0a2;margin-bottom:24px}
-#landing .lp-foot{text-align:center;padding:28px 6vw;font-size:12.5px;color:#7a7368;border-top:1px solid rgba(255,255,255,.06)}
-@media(max-width:768px){#landing .lp-features{grid-template-columns:1fr}#landing .lp-hero{padding:44px 6vw 32px}}
+#landing{display:flex;position:fixed;inset:0;z-index:90;flex-direction:column;background:#fff;color:#1a1730;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif}
+#landing .lp-bg{position:absolute;inset:0;background:radial-gradient(900px 520px at 50% -12%,rgba(124,92,255,.16),transparent 60%),radial-gradient(720px 460px at 88% 8%,rgba(77,139,255,.14),transparent 55%),linear-gradient(180deg,#fbfaff,#fff 40%);z-index:0;pointer-events:none}
+#landing .lp-wrap{position:relative;z-index:1}
+#landing .lp-nav{display:flex;align-items:center;justify-content:space-between;padding:15px 6vw;position:sticky;top:0;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);z-index:3;border-bottom:1px solid #f0eef7}
+#landing .lp-logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800}
+#landing .lp-logo-ic{width:32px;height:32px;background:linear-gradient(135deg,#7c5cff,#4d8bff);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px}
+#landing .lp-nav-links{display:flex;gap:26px;font-size:14.5px;color:#5a5570;font-weight:500}
+#landing .lp-nav-links span{cursor:pointer}
+#landing .lp-nav-links span:hover{color:#1a1730}
+#landing .lp-nav-btn{padding:9px 20px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c5cff,#5b7bff);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+#landing .lp-hero{text-align:center;padding:74px 6vw 40px;max-width:920px;margin:0 auto}
+#landing .lp-badge{display:inline-block;padding:6px 16px;border-radius:99px;background:rgba(124,92,255,.1);color:#7c5cff;font-size:13px;font-weight:600;margin-bottom:26px}
+#landing .lp-hero h1{font-size:clamp(32px,5.4vw,56px);font-weight:800;line-height:1.18;letter-spacing:-1.5px;margin-bottom:20px}
+#landing .lp-grad{background:linear-gradient(120deg,#ff5e8a,#7c5cff 52%,#4d8bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#landing .lp-sub{font-size:clamp(15px,2vw,19px);color:#6a6580;line-height:1.7;margin-bottom:34px}
+#landing .lp-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+#landing .lp-btn-primary{padding:15px 34px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c5cff,#5b7bff);color:#fff;font-weight:800;font-size:16px;cursor:pointer;transition:.18s;box-shadow:0 8px 24px rgba(124,92,255,.3)}
+#landing .lp-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(124,92,255,.42)}
+#landing .lp-btn-ghost{padding:15px 28px;border:1.5px solid #e3def5;border-radius:12px;background:#fff;color:#3a3550;font-weight:700;font-size:15px;cursor:pointer}
+#landing .lp-sec-title{text-align:center;font-size:clamp(22px,3vw,32px);font-weight:800;margin:10px 0 6px}
+#landing .lp-sec-sub{text-align:center;font-size:15px;color:#6a6580;margin-bottom:32px}
+#landing .lp-types{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1040px;margin:0 auto;padding:14px 6vw 8px;width:100%}
+#landing .lp-type{border:1px solid #ece9f6;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 4px 18px rgba(80,60,160,.05);transition:.18s;cursor:pointer}
+#landing .lp-type:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(80,60,160,.12)}
+#landing .lp-type-img{height:148px;display:flex;align-items:center;justify-content:center;font-size:42px}
+#landing .lp-type-b{padding:14px 16px}
+#landing .lp-type h4{font-size:15px;font-weight:700;margin-bottom:4px}
+#landing .lp-type p{font-size:12.5px;color:#7a7590;line-height:1.5}
+#landing .lp-features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1040px;margin:0 auto;padding:30px 6vw 56px;width:100%}
+#landing .lp-feat{background:#fff;border:1px solid #ece9f6;border-radius:18px;padding:28px 24px;box-shadow:0 4px 18px rgba(80,60,160,.05)}
+#landing .lp-feat-ic{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(135deg,rgba(124,92,255,.14),rgba(77,139,255,.14));margin-bottom:16px}
+#landing .lp-feat h3{font-size:18px;font-weight:700;margin-bottom:10px}
+#landing .lp-feat p{font-size:13.5px;color:#6a6580;line-height:1.7}
+#landing .lp-pricing{text-align:center;padding:54px 6vw;background:linear-gradient(135deg,#7c5cff,#5b7bff);color:#fff}
+#landing .lp-pricing h2{font-size:clamp(22px,3vw,32px);font-weight:800;margin-bottom:12px}
+#landing .lp-pricing p{font-size:15.5px;opacity:.92;margin-bottom:26px}
+#landing .lp-btn-white{padding:15px 32px;border:none;border-radius:12px;background:#fff;color:#5b3bff;font-weight:800;font-size:16px;cursor:pointer}
+#landing .lp-foot{text-align:center;padding:28px 6vw;font-size:12.5px;color:#9a95ad;background:#fbfaff}
+@media(max-width:768px){#landing .lp-nav-links{display:none}#landing .lp-types{grid-template-columns:repeat(2,1fr)}#landing .lp-features{grid-template-columns:1fr}#landing .lp-hero{padding:48px 6vw 30px}}
 </style>
 <div id="landing">
-  <header class="lp-nav">
-    <div class="lp-logo"><span class="lp-logo-ic">松</span> 松鼠AI</div>
-    <button class="lp-nav-btn" onclick="openAccountModal()">登录 / 免费试用</button>
-  </header>
-  <section class="lp-hero">
-    <div class="lp-badge">🌰 AI 短视频创作平台</div>
-    <h1>从文案到成品，<span class="lp-grad">几分钟做一条爆款</span></h1>
-    <p class="lp-sub">AI 自动拆解爆款结构 · 生成脚本 · 真人配音 · 智能混剪 · 一键多平台发布。<br>专为跨境电商 / 社媒运营打造——一个人，顶一个团队。</p>
-    <div class="lp-cta">
-      <button class="lp-btn-primary" onclick="openAccountModal()">免费开始创作 →</button>
-      <button class="lp-btn-ghost" onclick="openAccountModal()">已有账号，登录</button>
-    </div>
-    <div class="lp-trust">支持 中 / 英 / 葡 / 法 / 德 / 西 多语种 · 无需下载，打开即用</div>
-  </section>
-  <section class="lp-features">
-    <div class="lp-feat"><div class="lp-feat-ic">🎬</div><h3>AI 成片</h3><p>上传产品素材，AI 自动拆解爆款结构、生成脚本、匹配素材，全流程一键出片</p></div>
-    <div class="lp-feat"><div class="lp-feat-ic">🎙️</div><h3>AI 配音</h3><p>多语种真人音色，批量生成口播配音 MP3，中英葡法德西全支持</p></div>
-    <div class="lp-feat"><div class="lp-feat-ic">✂️</div><h3>批量混剪</h3><p>上传实拍素材，AI 智能规划混剪方案，真实合成 + 自动配音，批量起号</p></div>
-  </section>
-  <section class="lp-pricing">
-    <h2>按需充值松果 🌰，用多少花多少</h2>
-    <p>体验版 ¥79 · 标准版 ¥239 · 专业版 ¥649 —— 登录后查看每档能做多少</p>
-    <button class="lp-btn-primary" onclick="openAccountModal()">登录查看套餐 →</button>
-  </section>
-  <footer class="lp-foot">松鼠AI · 让每个运营都能高效做内容　|　客服微信 13352774776</footer>
+  <div class="lp-bg"></div>
+  <div class="lp-wrap">
+    <header class="lp-nav">
+      <div class="lp-logo"><span class="lp-logo-ic">松</span> 松鼠AI</div>
+      <div class="lp-nav-links"><span onclick="openAccountModal()">AI 成片</span><span onclick="openAccountModal()">AI 配音</span><span onclick="openAccountModal()">批量混剪</span><span onclick="openAccountModal()">价格</span></div>
+      <button class="lp-nav-btn" onclick="openAccountModal()">登录 / 免费试用</button>
+    </header>
+    <section class="lp-hero">
+      <div class="lp-badge">🌰 AI 短视频创作平台 · 专为跨境电商和社媒起号</div>
+      <h1>上传商品图，<span class="lp-grad">一句话生成爆款带货视频</span></h1>
+      <p class="lp-sub">AI 自动拆解爆款 · 生成脚本 · 真人配音 · 智能混剪，一个人一天做出上百条高转化短视频。</p>
+      <div class="lp-cta">
+        <button class="lp-btn-primary" onclick="openAccountModal()">免费开始创作 →</button>
+        <button class="lp-btn-ghost" onclick="openAccountModal()">已有账号，登录</button>
+      </div>
+    </section>
+    <div class="lp-sec-title">一键生成 4 类爆款带货视频</div>
+    <div class="lp-sec-sub">上传商品图，选好类型，AI 批量出片</div>
+    <section class="lp-types">
+      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#ffe3ec,#e7e0ff)">🛍️</div><div class="lp-type-b"><h4>UGC 种草</h4><p>用户视角真实分享，最易爆</p></div></div>
+      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#e0ecff,#f0e7ff)">🎬</div><div class="lp-type-b"><h4>带货短剧</h4><p>剧情植入，强代入感</p></div></div>
+      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#e7fff0,#e0f0ff)">🎤</div><div class="lp-type-b"><h4>产品口播</h4><p>面对镜头讲清卖点</p></div></div>
+      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#fff4e0,#ffe7f0)">✨</div><div class="lp-type-b"><h4>产品演示</h4><p>多角度展示 + 使用演示</p></div></div>
+    </section>
+    <section class="lp-features">
+      <div class="lp-feat"><div class="lp-feat-ic">🎬</div><h3>AI 成片</h3><p>上传产品素材，AI 自动拆解爆款结构、生成脚本、匹配素材，全流程一键出片</p></div>
+      <div class="lp-feat"><div class="lp-feat-ic">🎙️</div><h3>AI 配音</h3><p>多语种真人音色，批量生成口播配音 MP3，中英葡法德西全支持</p></div>
+      <div class="lp-feat"><div class="lp-feat-ic">✂️</div><h3>批量混剪</h3><p>上传实拍素材，AI 智能规划混剪方案，真实合成 + 自动配音，批量起号</p></div>
+    </section>
+    <section class="lp-pricing">
+      <h2>按需充值松果 🌰，用多少花多少</h2>
+      <p>体验版 ¥79 · 标准版 ¥239 · 专业版 ¥649 —— 登录后查看每档能做多少</p>
+      <button class="lp-btn-white" onclick="openAccountModal()">登录查看套餐 →</button>
+    </section>
+    <footer class="lp-foot">松鼠AI · 让每个运营都能高效做内容　|　客服微信 13352774776</footer>
+  </div>
 </div>
-
 <!-- 在线客服浮窗 -->
 <style>
 #cs-widget{position:fixed;right:22px;bottom:22px;z-index:9998;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
