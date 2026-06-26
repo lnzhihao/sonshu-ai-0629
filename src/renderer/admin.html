@@ -45,7 +45,7 @@
     <div class="muted" style="margin:8px 0 12px">客户没点"我已付款"、或你想直接开：填他的<b>登录账号</b>，选套餐，点开通。</div>
     <div class="row" style="margin-bottom:9px">
       <input id="m-acc" placeholder="客户登录账号" style="flex:2;min-width:140px">
-      <select id="m-tier" style="flex:1;min-width:90px"><option value="month">月卡 ¥39</option><option value="quarter">季卡 ¥99</option><option value="year">年卡 ¥299</option></select>
+      <select id="m-tier" style="flex:1;min-width:90px"><option value="standard">标准版 ¥239</option><option value="basic">体验版 ¥79</option><option value="pro">专业版 ¥649</option></select>
       <button onclick="manualActivate()">开通</button>
     </div>
     <div class="row"><button class="ghost" onclick="lookup()">🔍 查这个账号现状</button></div>
@@ -57,7 +57,7 @@
 <script>
 const A=location.origin;
 let PW='';
-const TIER={month:'月卡',quarter:'季卡',year:'年卡',test:'测试'};
+const TIER={basic:'体验版',standard:'标准版',pro:'专业版',test:'测试'};
 async function post(p,b){
   const r=await fetch(A+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...b,admin_pass:PW})});
   return r.json();

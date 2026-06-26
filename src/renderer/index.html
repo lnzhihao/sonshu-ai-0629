@@ -268,7 +268,7 @@ tr:hover td{background:#f9fafb}
           <div class="smc-sub" id="member-expire-text">开通会员解锁全部功能</div>
         </div>
       </div>
-      <button class="smc-btn" id="member-cta" onclick="openPay('monthly')">开通会员</button>
+      <button class="smc-btn" id="member-cta" onclick="showPage('settings')">开通会员</button>
     </div>
 
     <div class="side-token">
@@ -594,18 +594,41 @@ tr:hover td{background:#f9fafb}
     <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:8px">💾 保存配置</button>
     <div id="settings-status" style="margin-top:10px;font-size:12px"></div>
   </div>
-  <div class="card" id="settings-membership-card"><div class="card-title">💎 会员中心</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
-      <div style="padding:20px;background:var(--bg);border-radius:var(--radius-sm);text-align:center;cursor:pointer;border:1px solid var(--border);transition:var(--transition)" onclick="openPay('monthly')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
-        <div style="font-size:22px;font-weight:700">¥39</div><div style="font-size:12px;color:var(--text2);margin-top:4px">月卡</div>
+  <div class="card" id="settings-membership-card"><div class="card-title">💎 会员中心 · 充值松果 🌰</div>
+    <style>
+      #settings-membership-card .tier-card{position:relative;padding:18px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:var(--transition);text-align:center}
+      #settings-membership-card .tier-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+      #settings-membership-card .tier-card.popular{border-color:var(--accent);background:var(--accent-light)}
+      #settings-membership-card .tc-tag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#e3b551,#cf9b3f);color:#241a06;font-size:10.5px;font-weight:700;padding:2px 10px;border-radius:99px;white-space:nowrap}
+      #settings-membership-card .tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+      #settings-membership-card .tc-price{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px}
+      #settings-membership-card .tc-price span{font-size:12px;font-weight:500;color:var(--text2)}
+      #settings-membership-card .tc-pine{font-size:12.5px;font-weight:700;color:var(--accent-hover);margin:9px 0 4px}
+      #settings-membership-card .tc-pine small{font-weight:500;color:var(--text2)}
+      #settings-membership-card .tc-do{font-size:11.5px;color:var(--text2);line-height:1.6;margin-top:6px}
+    </style>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:12px 0 12px">
+      <div class="tier-card" onclick="openPay('basic')">
+        <div class="tc-name">🌰 体验版</div>
+        <div class="tc-price">¥79<span>/月</span></div>
+        <div class="tc-pine">到账 800 松果</div>
+        <div class="tc-do">≈ 40 秒成片<br>或 80 条混剪 / 配音</div>
       </div>
-      <div style="padding:20px;background:var(--bg);border-radius:var(--radius-sm);text-align:center;cursor:pointer;border:1px solid var(--border);transition:var(--transition)" onclick="openPay('quarterly')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
-        <div style="font-size:22px;font-weight:700">¥99</div><div style="font-size:12px;color:var(--text2);margin-top:4px">季卡</div>
+      <div class="tier-card popular" onclick="openPay('standard')">
+        <div class="tc-tag">最受欢迎</div>
+        <div class="tc-name">🌰🌰 标准版</div>
+        <div class="tc-price">¥239<span>/月</span></div>
+        <div class="tc-pine">到账 2600 松果 <small>(送210)</small></div>
+        <div class="tc-do">≈ 130 秒成片<br>或 260 条混剪 / 配音</div>
       </div>
-      <div style="padding:20px;background:var(--bg);border-radius:var(--radius-sm);text-align:center;cursor:pointer;border:1px solid var(--border);transition:var(--transition)" onclick="openPay('yearly')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
-        <div style="font-size:22px;font-weight:700">¥299</div><div style="font-size:12px;color:var(--text2);margin-top:4px">年卡</div>
+      <div class="tier-card" onclick="openPay('pro')">
+        <div class="tc-name">🌰🌰🌰 专业版</div>
+        <div class="tc-price">¥649<span>/月</span></div>
+        <div class="tc-pine">到账 7500 松果 <small>(送1010)</small></div>
+        <div class="tc-do">≈ 375 秒成片<br>或 750 条混剪 / 配音</div>
       </div>
     </div>
+    <div style="font-size:11.5px;color:var(--text2);margin-bottom:12px">消耗规则:AI成片 <b>20松果/秒</b> · 批量混剪 <b>10松果/条</b> · AI配音 <b>10松果/条</b></div>
     <div id="member-info" style="font-size:13px;color:var(--text2)">当前：免费用户</div>
   </div>
 </div>
@@ -715,15 +738,15 @@ document.querySelectorAll('.nav-item').forEach(el=>{el.addEventListener('click',
 // ── Account ──
 function openAccountModal(){document.getElementById('account-modal').classList.add('open');document.getElementById('login-account').focus()}
 function closeAccountModal(){document.getElementById('account-modal').classList.remove('open')}
-const _TIER_MAP={monthly:'month',quarterly:'quarter',yearly:'year',month:'month',quarter:'quarter',year:'year'};
-const _TIER_LABEL={month:'¥39 · 月卡',quarter:'¥99 · 季卡',year:'¥299 · 年卡'};
-let _payTier='month';
+const _TIER_NAME={basic:'体验版',standard:'标准版',pro:'专业版'};
+const _TIER_PRICE={basic:'¥79',standard:'¥239',pro:'¥649'};
+const _TIER_PINE={basic:'800',standard:'2600',pro:'7500'};
+let _payTier='standard';
 function openPay(tier){
   if(!S.user?.token){openAccountModal();toast('请先登录再开通会员','error');return}
-  _payTier=_TIER_MAP[tier]||'month';
-  const label=_TIER_LABEL[_payTier]||'';
-  document.getElementById('pay-amount').textContent=label;
-  document.getElementById('pay-amount2').textContent=label.split(' ')[0];
+  _payTier=_TIER_NAME[tier]?tier:'standard';
+  document.getElementById('pay-amount').textContent=`${_TIER_NAME[_payTier]} · 到账 ${_TIER_PINE[_payTier]} 松果 🌰`;
+  document.getElementById('pay-amount2').textContent=_TIER_PRICE[_payTier];
   document.getElementById('pay-contact').textContent='…';
   document.getElementById('pay-modal').classList.add('open');
   api('/api/pay/manual').then(d=>{if(d&&d.contact)document.getElementById('pay-contact').textContent=d.contact}).catch(()=>{});
@@ -752,12 +775,12 @@ function updateAccountUI(){
   const el=document.getElementById('member-status-text');
   const ex=document.getElementById('member-expire-text');
   const un=document.getElementById('dash-username');
-  if(S.user?.member){el.textContent=S.user.member==='yearly'?'年费会员':S.user.member==='quarterly'?'季费会员':'月费会员';ex.textContent=S.user.member_until?'到期：'+new Date(S.user.member_until).toLocaleDateString():'已开通';el.style.color='#f59e0b'}
+  if(S.user?.member){el.textContent='会员';ex.textContent=S.user.member_until?'到期：'+new Date(S.user.member_until).toLocaleDateString():'已开通';el.style.color='var(--accent)'}
   else{el.textContent='免费用户';ex.textContent='开通会员解锁全部功能';el.style.color=''}
   const cta=document.getElementById('member-cta');if(cta)cta.textContent=S.user?.member?'续费会员':'开通会员';
   if(un)un.textContent=S.user?.account?'，'+S.user.account:'';
   if(S.user?.token)document.getElementById('account-modal-title').textContent=S.user.account;
-  const mi=document.getElementById('member-info');if(mi)mi.innerHTML=S.user?.member?`当前：${S.user.member==='yearly'?'年费会员':S.user.member==='quarterly'?'季费会员':'月费会员'}`:'当前：免费用户';
+  const mi=document.getElementById('member-info');if(mi)mi.innerHTML=S.user?.member?'当前：会员':'当前：免费用户';
 }
 function logoutAccount(){S.user=null;localStorage.removeItem('xma_token');localStorage.removeItem('xma_account');updateAccountUI();toast('已退出登录')}
 async function restoreAccountPreview(){

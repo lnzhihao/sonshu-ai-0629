@@ -233,11 +233,12 @@ const ALIPAY_KEY_FILE = path.join(CONFIG_DIR, 'alipay_private_key.pem');
 const ALIPAY_NOTIFY_URL = (cfg('PUBLIC_URL') || 'http://159.75.130.35').replace(/\/$/, '') + '/api/pay/notify';
 const ORDERS_FILE = path.join(CONFIG_DIR, 'orders.json');
 // 会员套餐（可改）
+// 松果(积分): 1 松果 = ¥0.1。消耗: AI成片 20松果/秒, 批量混剪 10松果/条, AI配音 10松果/条
 const MEMBER_TIERS = {
-  month:   { days: 30,  amount: '39.00',  name: '松鼠AI 月卡' },
-  quarter: { days: 90,  amount: '99.00',  name: '松鼠AI 季卡' },
-  year:    { days: 365, amount: '299.00', name: '松鼠AI 年卡' },
-  test:    { days: 1,   amount: '0.01',   name: '松鼠AI 测试' },
+  basic:    { days: 30, amount: '79.00',  pinecones: 800,  name: '松鼠AI 体验版' },
+  standard: { days: 30, amount: '239.00', pinecones: 2600, name: '松鼠AI 标准版' },
+  pro:      { days: 30, amount: '649.00', pinecones: 7500, name: '松鼠AI 专业版' },
+  test:     { days: 1,  amount: '0.01',   pinecones: 50,   name: '松鼠AI 测试' },
 };
 function loadOrders() { try { return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8')); } catch { return {}; } }
 function saveOrders(o) { fs.mkdirSync(CONFIG_DIR, { recursive: true }); fs.writeFileSync(ORDERS_FILE, JSON.stringify(o, null, 2)); }
@@ -336,7 +337,7 @@ app.get('/api/pay/qr', (req, res) => {
 app.get('/api/pay/manual', (req, res) => {
   res.json({
     ok: true, contact: payContact(), qr: '/api/pay/qr',
-    tiers: Object.entries(MEMBER_TIERS).filter(([k]) => k !== 'test').map(([k, v]) => ({ key: k, name: v.name, amount: v.amount, days: v.days })),
+    tiers: Object.entries(MEMBER_TIERS).filter(([k]) => k !== 'test').map(([k, v]) => ({ key: k, name: v.name, amount: v.amount, days: v.days, pinecones: v.pinecones })),
   });
 });
 
@@ -348,7 +349,7 @@ app.post('/api/pay/manual-order', (req, res) => {
   if (!tier) return res.status(400).json({ error: '套餐不存在' });
   const orders = loadOrders();
   const id = 'P' + Date.now() + Math.random().toString(36).slice(2, 6);
-  orders[id] = { id, account: u.account, tier: req.body.tier, tier_name: tier.name, days: tier.days, amount: tier.amount, status: '待确认', manual: true, created_at: new Date().toISOString() };
+  orders[id] = { id, account: u.account, tier: req.body.tier, tier_name: tier.name, days: tier.days, amount: tier.amount, pinecones: tier.pinecones, status: '待确认', manual: true, created_at: new Date().toISOString() };
   saveOrders(orders);
   res.json({ ok: true, order_id: id });
 });
