@@ -272,9 +272,10 @@ tr:hover td{background:#f9fafb}
     </div>
 
     <div class="side-token">
-      <div class="token-label"><span>Token 用量</span><span id="token-pct">--</span></div>
+      <div class="token-label"><span>免费额度</span><span id="token-pct">--</span></div>
       <div class="token-bar"><div class="token-fill" id="token-fill" style="width:0%"></div></div>
       <div class="token-num" id="token-num">加载中…</div>
+      <button onclick="dailyCheckin()" style="width:100%;margin-top:8px;padding:7px;border:1px solid rgba(124,92,255,.32);border-radius:8px;background:rgba(124,92,255,.1);color:#c9c3ff;font-size:12px;font-weight:600;cursor:pointer">📅 每日签到领松果 🌰</button>
     </div>
 
     <div class="status-bar"><span class="status-dot" id="status-dot"></span><span id="status-text">连接中…</span></div>
@@ -756,7 +757,7 @@ tr:hover td{background:#f9fafb}
         </div>
         <div class="lp-demo-foot">
           <div class="lp-demo-chips"><span>🌍 北美</span><span>💬 英语</span><span>📱 TikTok · 9:16</span><span>🎯 UGC 种草</span></div>
-          <button class="lp-demo-gen" onclick="openAccountModal()">✨ 立即生成</button>
+          <button class="lp-demo-gen" onclick="homeCreate()">✨ 立即生成</button>
         </div>
       </div>
       <div class="lp-trust">无需下载 · 打开即用 · 支持 中 / 英 / 葡 / 法 / 德 / 西 多语种</div>
@@ -915,12 +916,42 @@ function updateAccountUI(){
   else if(S.user?.member){el.textContent='会员';ex.textContent=S.user.member_until?'到期：'+new Date(S.user.member_until).toLocaleDateString():'已开通';el.style.color='var(--accent)'}
   else{el.textContent='免费用户';ex.textContent='开通会员解锁全部功能';el.style.color=''}
   const cta=document.getElementById('member-cta');if(cta)cta.textContent=!S.user?.token?'登录 / 免费试用':(S.user?.member?'续费会员':'开通会员');
+  updateUsesUI();
   if(un)un.textContent=S.user?.account?'，'+S.user.account:'';
   if(S.user?.token)document.getElementById('account-modal-title').textContent=S.user.account;
   const mi=document.getElementById('member-info');if(mi)mi.innerHTML=S.user?.member?'当前：会员':'当前：免费用户';
 }
 function logoutAccount(){S.user=null;localStorage.removeItem('xma_token');localStorage.removeItem('xma_account');updateAccountUI();showPage('dashboard');toast('已退出登录')}
 function memberCtaClick(){ if(!S.user?.token){openAccountModal()} else {showPage('settings')} }
+// ── P3 免费额度漏斗(仿即梦)──
+function getUses(){return parseInt(localStorage.getItem('xma_uses')||'0',10)}
+function setUses(n){localStorage.setItem('xma_uses',n);updateUsesUI()}
+function updateUsesUI(){
+  const el=document.getElementById('token-num'),pe=document.getElementById('token-pct'),f=document.getElementById('token-fill');
+  if(S.user?.member){if(el)el.textContent='会员 · 不限次创作';if(pe)pe.textContent='∞';if(f)f.style.width='100%';return}
+  const max=S.user?.token?5:2,used=Math.min(getUses(),max),left=Math.max(0,max-used);
+  if(el)el.textContent=`免费额度 · 剩 ${left}/${max} 次`;
+  if(pe)pe.textContent=left;
+  if(f)f.style.width=(max?used/max*100:0)+'%';
+}
+function gateCreate(){
+  if(S.user?.member)return true;
+  const uses=getUses();
+  if(!S.user?.token){
+    if(uses>=2){openAccountModal();toast('已免费体验 2 次，登录后继续创作 + 每天领松果 🌰','info');return false}
+    setUses(uses+1);return true;
+  }
+  if(uses>=5){showPage('settings');toast('免费额度已用完，开通会员继续无限创作 🌰','info');return false}
+  setUses(uses+1);return true;
+}
+function homeCreate(){ if(gateCreate())showPage('creative') }
+function dailyCheckin(){
+  if(!S.user?.token){openAccountModal();toast('登录后即可每日签到领松果 🌰','info');return}
+  const today=new Date().toISOString().slice(0,10);
+  if(localStorage.getItem('xma_checkin')===today){toast('今天已签到，明天再来领 🌰','info');return}
+  localStorage.setItem('xma_checkin',today);
+  toast('签到成功！+30 松果 🌰（余额以服务器为准）','success');
+}
 async function restoreAccountPreview(){
   const token=localStorage.getItem('xma_token');
   const acc=localStorage.getItem('xma_account');
@@ -981,6 +1012,7 @@ function apShowScore(d){const p=document.getElementById('autopilot-panel');p.sty
   <button class="btn btn-primary btn-block" style="margin-top:14px;background:var(--green)" onclick="runAutopilotRender()" id="ap-render-btn">🎬 合成出片</button></div>`}
 
 async function runAutopilot(){
+  if(!gateCreate())return;
   const refVideo=document.getElementById('ref-video-url').value.trim()||((S._refVideoLocalUrl||'').startsWith('blob:')?'':S._refVideoLocalUrl||'');
   const product=document.getElementById('c-product').value.trim();if(!product)return toast('请填写产品','error');
   const btn=document.getElementById('gen-btn');btn.disabled=true;btn.textContent='⏳ AI 运行中…';apResetPanel();
@@ -1031,6 +1063,7 @@ function renderVoices(){const l=document.getElementById('voice-list');if(!l)retu
   l.innerHTML=S.voices.map(v=>`<div style="padding:10px;border:1px solid ${S.selectedVoice===v.id?'var(--accent)':'var(--border)'};border-radius:var(--radius-sm);cursor:pointer;background:${S.selectedVoice===v.id?'var(--accent-light)':''}" onclick="selectVoice('${v.id}','${v.name}')"><div style="font-weight:600;font-size:13px">${v.name}</div><div style="font-size:11px;color:var(--text2)">${v.lang}</div></div>`).join('')}
 function selectVoice(id,n){S.selectedVoice=id;renderVoices();toast('已选择: '+n)}
 async function generateAudio(){
+  if(!gateCreate())return;
   const text=document.getElementById('audio-text').value.trim();if(!text)return toast('请填写文案','error');
   try{const d=await apiPost('/api/tts/create',{text,voice_type:S.selectedVoice});if(d.error)return toast(d.error,'error');
     const bytes=Uint8Array.from(atob(d.audio_base64),c=>c.charCodeAt(0));S.audioBlob=new Blob([bytes],{type:'audio/mpeg'});
@@ -1111,6 +1144,7 @@ async function generateMixcutPlan(){
   try{const d=await apiPost('/api/mixcut/plan',{files:S.mixcutFiles.filter(f=>f.status==='done')});if(d.error)return toast(d.error,'error');S.mixcutPlan=d;document.getElementById('mc-render-btn').style.display='';mcStep(1,'done','方案已生成');document.getElementById('mc-plan').innerHTML=`<div style="font-weight:600;font-size:14px">${d.title||'混剪方案'}</div><div style="font-size:12px;color:var(--text2);margin-top:4px">${d.summary||''}</div><div style="font-size:12px;color:var(--text2);margin-top:8px">${(d.segments||[]).length||0} 个片段 · ${d.total_duration||0}秒</div>`}catch(e){toast(e.message,'error')}
 }
 async function runMixcutRender(){
+  if(!gateCreate())return;
   if(!S.mixcutPlan)return toast('请先生成方案','error');
   document.getElementById('mc-status').textContent='合成中…';
   try{const resp=await fetch(apiBase()+'/api/mixcut/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S.mixcutPlan)});
@@ -1187,8 +1221,9 @@ async function saveSettings(){
 }
 async function checkStatus(){
   try{const d=await api('/health');const dot=document.getElementById('status-dot');const txt=document.getElementById('status-text');
-    if(d.ok){dot.classList.add('ok');txt.textContent='在线 · v2';if(d.hasArkKey)document.getElementById('token-num').textContent='ARK 已连接';}
-  }catch(e){document.getElementById('token-num').textContent='离线';document.getElementById('status-text').textContent='离线'}
+    if(d.ok){dot.classList.add('ok');txt.textContent='在线 · v2';}
+    updateUsesUI();
+  }catch(e){document.getElementById('status-text').textContent='离线'}
 }
 
 // ── Init ──
