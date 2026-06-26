@@ -753,14 +753,14 @@ tr:hover td{background:#f9fafb}
       <h1>上传商品图，<span class="lp-grad">一句话生成爆款带货视频</span></h1>
       <p class="lp-sub">AI 自动拆解爆款 · 生成脚本 · 真人配音 · 智能混剪，一个人一天做出上百条高转化短视频。</p>
       <div class="lp-cta">
-        <button class="lp-btn-primary" onclick="openAccountModal()">免费开始创作 →</button>
-        <button class="lp-btn-ghost" onclick="openAccountModal()">观看演示</button>
+        <button class="lp-btn-primary" onclick="homeCreate()">免费开始创作 →</button>
+        <button class="lp-btn-ghost" onclick="homeCreate()">观看演示</button>
       </div>
       <!-- 仿真创作卡片 -->
       <div class="lp-demo">
-        <div class="lp-demo-tabs"><span class="active">🎬 AI 成片</span><span onclick="openAccountModal()">🎙️ AI 配音</span><span onclick="openAccountModal()">✂️ 批量混剪</span></div>
+        <div class="lp-demo-tabs"><span class="active" onclick="showPage('creative')">🎬 AI 成片</span><span onclick="showPage('audio')">🎙️ AI 配音</span><span onclick="showPage('mixcut')">✂️ 批量混剪</span></div>
         <div class="lp-demo-body">
-          <div class="lp-demo-upload" onclick="openAccountModal()">
+          <div class="lp-demo-upload" onclick="homeCreate()">
             <div class="lp-up-ic">📦</div>
             <div><b>上传商品图 / 实拍素材</b>，AI 自动拆解爆款结构并生成整条带货视频</div>
           </div>
@@ -776,21 +776,21 @@ tr:hover td{background:#f9fafb}
     <div class="lp-sec-title">一键生成 4 类爆款带货视频</div>
     <div class="lp-sec-sub">上传商品图，选好类型，AI 批量出片</div>
     <section class="lp-types">
-      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#ffd9e6,#e7ddff)">🛍️</div><div class="lp-type-b"><h4>UGC 种草</h4><p>用户视角真实分享，最易爆</p></div></div>
-      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#d8e8ff,#efe0ff)">🎬</div><div class="lp-type-b"><h4>带货短剧</h4><p>剧情植入，强代入感</p></div></div>
-      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#d6ffe8,#dcefff)">🎤</div><div class="lp-type-b"><h4>产品口播</h4><p>面对镜头讲清卖点</p></div></div>
-      <div class="lp-type" onclick="openAccountModal()"><div class="lp-type-img" style="background:linear-gradient(135deg,#fff0d6,#ffe0ee)">✨</div><div class="lp-type-b"><h4>产品演示</h4><p>多角度展示 + 使用演示</p></div></div>
+      <div class="lp-type" onclick="homeCreate()"><div class="lp-type-img" style="background:linear-gradient(135deg,#ffd9e6,#e7ddff)">🛍️</div><div class="lp-type-b"><h4>UGC 种草</h4><p>用户视角真实分享，最易爆</p></div></div>
+      <div class="lp-type" onclick="homeCreate()"><div class="lp-type-img" style="background:linear-gradient(135deg,#d8e8ff,#efe0ff)">🎬</div><div class="lp-type-b"><h4>带货短剧</h4><p>剧情植入，强代入感</p></div></div>
+      <div class="lp-type" onclick="homeCreate()"><div class="lp-type-img" style="background:linear-gradient(135deg,#d6ffe8,#dcefff)">🎤</div><div class="lp-type-b"><h4>产品口播</h4><p>面对镜头讲清卖点</p></div></div>
+      <div class="lp-type" onclick="homeCreate()"><div class="lp-type-img" style="background:linear-gradient(135deg,#fff0d6,#ffe0ee)">✨</div><div class="lp-type-b"><h4>产品演示</h4><p>多角度展示 + 使用演示</p></div></div>
     </section>
 
     <div class="lp-sec-title">真实爆款案例</div>
     <div class="lp-sec-sub">这些都是用松鼠AI 做出来的真人出镜带货短视频</div>
     <section class="lp-gallery">
-      <div class="lp-g-card" onclick="openAccountModal()"><img src="/case1.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">智能手表 · 真人口播</div></div>
-      <div class="lp-g-card" onclick="openAccountModal()"><img src="/case2.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">真人出镜 · UGC 种草</div></div>
-      <div class="lp-g-card" onclick="openAccountModal()"><img src="/case3.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">产品演示 · TikTok</div></div>
-      <div class="lp-g-card" onclick="openAccountModal()"><img src="/case4.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">数码 · 产品口播</div></div>
-      <div class="lp-g-card" onclick="openAccountModal()"><img src="/case5.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">真人测评 · 种草</div></div>
-      <div class="lp-g-card" onclick="openAccountModal()"><img src="/case6.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">带货短视频 · TikTok</div></div>
+      <div class="lp-g-card" onclick="homeCreate()"><img src="/case1.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">智能手表 · 真人口播</div></div>
+      <div class="lp-g-card" onclick="homeCreate()"><img src="/case2.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">真人出镜 · UGC 种草</div></div>
+      <div class="lp-g-card" onclick="homeCreate()"><img src="/case3.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">产品演示 · TikTok</div></div>
+      <div class="lp-g-card" onclick="homeCreate()"><img src="/case4.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">数码 · 产品口播</div></div>
+      <div class="lp-g-card" onclick="homeCreate()"><img src="/case5.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">真人测评 · 种草</div></div>
+      <div class="lp-g-card" onclick="homeCreate()"><img src="/case6.jpg" alt="案例"><div class="lp-g-play">▶</div><div class="lp-g-label">带货短视频 · TikTok</div></div>
     </section>
 
     <div class="lp-sec-title">三大核心能力</div>
@@ -804,7 +804,7 @@ tr:hover td{background:#f9fafb}
     <section class="lp-pricing">
       <h2>按需充值松果 🌰，用多少花多少</h2>
       <p>体验版 ¥79 · 标准版 ¥239 · 专业版 ¥649 —— 登录后查看每档能做多少</p>
-      <button class="lp-btn-white" onclick="openAccountModal()">登录查看套餐 →</button>
+      <button class="lp-btn-white" onclick="showPage('settings')">登录查看套餐 →</button>
     </section>
     <footer class="lp-foot">松鼠AI · 让每个运营都能高效做内容　|　客服微信 13352774776</footer>
   </div>
@@ -954,7 +954,7 @@ function gateCreate(){
   if(uses>=5){showPage('settings');toast('免费额度已用完，开通会员继续无限创作 🌰','info');return false}
   setUses(uses+1);return true;
 }
-function homeCreate(){ if(gateCreate())showPage('creative') }
+function homeCreate(){ showPage('creative') }  /* 进创作页不扣额度，真正点生成才扣 */
 function dailyCheckin(){
   if(!S.user?.token){openAccountModal();toast('登录后即可每日签到领松果 🌰','info');return}
   const today=new Date().toISOString().slice(0,10);
