@@ -169,6 +169,7 @@ app.get('/api/config', (req, res) => {
 });
 
 app.post('/api/config', (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: '无权限修改平台配置（需管理员）' });
   try {
     const allowed = ['ARK_API_KEY', 'ARK_BASE_URL', 'DEFAULT_VIDEO_MODEL', 'DEFAULT_LLM_MODEL',
       'TTS_APP_ID', 'TTS_ACCESS_TOKEN', 'TTS_CLUSTER', 'TTS_API_KEY', 'TTS_RESOURCE_ID',
