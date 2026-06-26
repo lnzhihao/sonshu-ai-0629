@@ -254,7 +254,7 @@ tr:hover td{background:#f9fafb}
   <div class="side-section-label">内容管理</div>
   <div class="nav-item" data-page="materials"><span class="icon">📦</span>素材库<span id="mat-nav-count" class="badge-dot" style="display:none"></span></div>
   <div class="nav-item" data-page="publish"><span class="icon">🚀</span>批量发布</div>
-  <div class="nav-item" data-page="settings"><span class="icon">⚙️</span>设置</div>
+  <div class="nav-item" data-page="settings"><span class="icon">💎</span>会员中心</div>
 
   <div class="side-spacer"></div>
 
@@ -586,7 +586,7 @@ tr:hover td{background:#f9fafb}
 <!-- ── 设置 ── -->
 <div class="page" id="page-settings">
   <div class="page-header">
-    <div class="page-title">设置</div>
+    <div class="page-title">会员中心</div>
     <div class="page-sub">会员与充值 · 账户管理</div>
   </div>
   <div class="card" id="settings-apikey-card" style="display:none"><div class="card-title">🔑 API 密钥（仅管理员）</div>
@@ -608,6 +608,16 @@ tr:hover td{background:#f9fafb}
       #settings-membership-card .tc-pine small{font-weight:500;color:var(--text2)}
       #settings-membership-card .tc-do{font-size:11.5px;color:var(--text2);line-height:1.6;margin-top:6px}
     </style>
+    <div style="overflow-x:auto;margin:8px 0 18px">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:360px">
+        <tr style="color:var(--text2)"><th style="text-align:left;padding:8px 10px;font-weight:600">会员权益</th><th style="padding:8px 10px;font-weight:600">免费版</th><th style="padding:8px 10px;font-weight:700;color:var(--accent)">会员版</th></tr>
+        <tr style="border-top:1px solid var(--border)"><td style="padding:9px 10px">松果额度</td><td style="text-align:center;color:var(--text2)">免费体验 5 次</td><td style="text-align:center;font-weight:600">每月 800–7500 松果</td></tr>
+        <tr style="border-top:1px solid var(--border)"><td style="padding:9px 10px">去品牌水印</td><td style="text-align:center;color:var(--text2)">—</td><td style="text-align:center;color:var(--accent);font-weight:700">✓</td></tr>
+        <tr style="border-top:1px solid var(--border)"><td style="padding:9px 10px">多语种配音（中英葡法德西）</td><td style="text-align:center;color:var(--text2)">部分</td><td style="text-align:center;color:var(--accent);font-weight:700">✓ 全部</td></tr>
+        <tr style="border-top:1px solid var(--border)"><td style="padding:9px 10px">批量生成 / 混剪</td><td style="text-align:center;color:var(--text2)">—</td><td style="text-align:center;color:var(--accent);font-weight:700">✓</td></tr>
+        <tr style="border-top:1px solid var(--border)"><td style="padding:9px 10px">优先生成通道 + 专属客服</td><td style="text-align:center;color:var(--text2)">—</td><td style="text-align:center;color:var(--accent);font-weight:700">✓</td></tr>
+      </table>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:12px 0 12px">
       <div class="tier-card" onclick="openPay('basic')">
         <div class="tc-name">🌰 体验版</div>
@@ -660,18 +670,30 @@ tr:hover td{background:#f9fafb}
 
 <!-- 支付弹窗 -->
 <div class="modal-overlay" id="pay-modal">
-  <div class="modal-dialog" style="text-align:center;max-width:340px">
-    <h3 id="pay-modal-title">开通会员</h3>
-    <div id="pay-amount" style="font-size:16px;font-weight:700;color:var(--accent);margin:4px 0 6px"></div>
-    <img id="pay-qr-img" src="/api/pay/qr" alt="支付宝收款码" style="width:220px;height:auto;margin:6px auto;border-radius:10px;display:block;background:#fff">
-    <div style="font-size:13px;color:var(--text2);line-height:1.85;text-align:left;background:var(--bg);padding:12px 14px;border-radius:10px;margin:10px 0 12px">
-      <b>①</b> 用支付宝扫上方二维码，付款 <b id="pay-amount2" style="color:var(--accent)"></b><br>
-      <b>②</b> 把你的<b>登录账号</b> + <b>付款截图</b>发给客服：<br>
-      &nbsp;&nbsp;&nbsp;<b id="pay-contact" style="color:var(--accent)">…</b><br>
-      <b>③</b> 客服确认后<b>立即为你开通</b>，刷新页面即可
+  <div class="modal-dialog" style="max-width:410px;padding:0;overflow:hidden;text-align:center">
+    <div style="background:linear-gradient(135deg,#7c5cff,#5b7bff);padding:18px 20px;color:#fff">
+      <div id="pay-modal-title" style="font-size:18px;font-weight:800">开通会员</div>
+      <div id="pay-amount" style="font-size:13.5px;opacity:.95;margin-top:5px;font-weight:600"></div>
     </div>
-    <button class="btn btn-primary btn-block" onclick="manualPaid()">我已付款，通知客服</button>
-    <button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="closePayModal()">关闭</button>
+    <div style="padding:18px 22px 20px">
+      <div style="display:flex;gap:13px;text-align:left;align-items:flex-start;margin-bottom:14px">
+        <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#7c5cff,#5b7bff);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px;margin-bottom:8px">支付宝扫码付款 <b id="pay-amount2" style="color:var(--accent)"></b></div>
+          <img src="/api/pay/qr" alt="支付宝收款码" style="width:130px;height:auto;border-radius:8px;border:1px solid var(--border);background:#fff">
+        </div>
+      </div>
+      <div style="display:flex;gap:13px;text-align:left;align-items:flex-start;margin-bottom:16px;border-top:1px dashed var(--border);padding-top:14px">
+        <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#7c5cff,#5b7bff);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px;margin-bottom:8px">加客服微信，发<b>付款截图</b> + <b>你的账号</b></div>
+          <img src="/wechat-qr.jpg" alt="客服微信" style="width:130px;height:auto;border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:12px;color:var(--text2);margin-top:7px">或搜微信号 <b id="pay-contact" style="color:var(--accent-hover)">…</b><br>客服核对后开通，通常 <b style="color:var(--accent)">5 分钟内</b> 到账</div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="manualPaid()">✅ 我已付款，通知客服</button>
+      <button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="closePayModal()">关闭</button>
+    </div>
   </div>
 </div>
 
@@ -902,7 +924,7 @@ function closePayModal(){document.getElementById('pay-modal').classList.remove('
 async function manualPaid(){
   const r=await apiPost('/api/pay/manual-order',{tier:_payTier});
   if(r.error){toast(r.error,'error');return}
-  toast('已通知客服，确认收款后会为你开通 ✅','success');
+  toast('已提交！客服核对后约 5 分钟内为你开通，开通后刷新页面即可 🌰','success');
   closePayModal();
 }
 
