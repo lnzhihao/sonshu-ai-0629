@@ -665,6 +665,62 @@ tr:hover td{background:#f9fafb}
 </div>
 
 <!-- Toast -->
+<!-- Landing 营销页(未登录访客先看到) -->
+<style>
+#landing{display:flex;position:fixed;inset:0;z-index:90;flex-direction:column;background:#141316;color:#f3ead6;overflow-y:auto}
+#landing .lp-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 6vw;position:sticky;top:0;background:rgba(20,19,22,.85);backdrop-filter:blur(8px);z-index:2}
+#landing .lp-logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800;color:#fff}
+#landing .lp-logo-ic{width:32px;height:32px;background:linear-gradient(135deg,#e3b551,#cf9b3f);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#241a06;font-size:17px}
+#landing .lp-nav-btn{padding:9px 18px;border:none;border-radius:9px;background:linear-gradient(135deg,#e3b551,#cf9b3f);color:#241a06;font-weight:700;font-size:14px;cursor:pointer}
+#landing .lp-hero{text-align:center;padding:64px 6vw 48px;max-width:860px;margin:0 auto}
+#landing .lp-badge{display:inline-block;padding:5px 14px;border:1px solid rgba(207,155,63,.5);border-radius:99px;font-size:13px;color:#e3b551;margin-bottom:24px}
+#landing .lp-hero h1{font-size:clamp(30px,5vw,52px);font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:20px;color:#fff}
+#landing .lp-grad{background:linear-gradient(135deg,#f0c668,#cf9b3f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#landing .lp-sub{font-size:clamp(15px,2vw,18px);color:#b8b0a2;line-height:1.7;margin-bottom:32px}
+#landing .lp-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+#landing .lp-btn-primary{padding:14px 30px;border:none;border-radius:11px;background:linear-gradient(135deg,#e3b551,#cf9b3f);color:#241a06;font-weight:800;font-size:16px;cursor:pointer;transition:.18s}
+#landing .lp-btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(207,155,63,.35)}
+#landing .lp-btn-ghost{padding:14px 26px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:transparent;color:#f3ead6;font-weight:600;font-size:15px;cursor:pointer}
+#landing .lp-trust{font-size:13px;color:#8a8276}
+#landing .lp-features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;padding:20px 6vw 56px;width:100%}
+#landing .lp-feat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 22px;text-align:center}
+#landing .lp-feat-ic{font-size:34px;margin-bottom:14px}
+#landing .lp-feat h3{font-size:18px;font-weight:700;color:#fff;margin-bottom:10px}
+#landing .lp-feat p{font-size:13.5px;color:#a89f90;line-height:1.7}
+#landing .lp-pricing{text-align:center;padding:48px 6vw;background:rgba(207,155,63,.06);border-top:1px solid rgba(255,255,255,.06)}
+#landing .lp-pricing h2{font-size:clamp(22px,3vw,30px);font-weight:800;margin-bottom:12px;color:#fff}
+#landing .lp-pricing p{font-size:15px;color:#b8b0a2;margin-bottom:24px}
+#landing .lp-foot{text-align:center;padding:28px 6vw;font-size:12.5px;color:#7a7368;border-top:1px solid rgba(255,255,255,.06)}
+@media(max-width:768px){#landing .lp-features{grid-template-columns:1fr}#landing .lp-hero{padding:44px 6vw 32px}}
+</style>
+<div id="landing">
+  <header class="lp-nav">
+    <div class="lp-logo"><span class="lp-logo-ic">松</span> 松鼠AI</div>
+    <button class="lp-nav-btn" onclick="openAccountModal()">登录 / 免费试用</button>
+  </header>
+  <section class="lp-hero">
+    <div class="lp-badge">🌰 AI 短视频创作平台</div>
+    <h1>从文案到成品，<span class="lp-grad">几分钟做一条爆款</span></h1>
+    <p class="lp-sub">AI 自动拆解爆款结构 · 生成脚本 · 真人配音 · 智能混剪 · 一键多平台发布。<br>专为跨境电商 / 社媒运营打造——一个人，顶一个团队。</p>
+    <div class="lp-cta">
+      <button class="lp-btn-primary" onclick="openAccountModal()">免费开始创作 →</button>
+      <button class="lp-btn-ghost" onclick="openAccountModal()">已有账号，登录</button>
+    </div>
+    <div class="lp-trust">支持 中 / 英 / 葡 / 法 / 德 / 西 多语种 · 无需下载，打开即用</div>
+  </section>
+  <section class="lp-features">
+    <div class="lp-feat"><div class="lp-feat-ic">🎬</div><h3>AI 成片</h3><p>上传产品素材，AI 自动拆解爆款结构、生成脚本、匹配素材，全流程一键出片</p></div>
+    <div class="lp-feat"><div class="lp-feat-ic">🎙️</div><h3>AI 配音</h3><p>多语种真人音色，批量生成口播配音 MP3，中英葡法德西全支持</p></div>
+    <div class="lp-feat"><div class="lp-feat-ic">✂️</div><h3>批量混剪</h3><p>上传实拍素材，AI 智能规划混剪方案，真实合成 + 自动配音，批量起号</p></div>
+  </section>
+  <section class="lp-pricing">
+    <h2>按需充值松果 🌰，用多少花多少</h2>
+    <p>体验版 ¥79 · 标准版 ¥239 · 专业版 ¥649 —— 登录后查看每档能做多少</p>
+    <button class="lp-btn-primary" onclick="openAccountModal()">登录查看套餐 →</button>
+  </section>
+  <footer class="lp-foot">松鼠AI · 让每个运营都能高效做内容　|　客服微信 13352774776</footer>
+</div>
+
 <!-- 在线客服浮窗 -->
 <style>
 #cs-widget{position:fixed;right:22px;bottom:22px;z-index:9998;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
@@ -712,6 +768,8 @@ const apiDelete=async p=>{const r=await fetch(apiBase()+p,{method:'DELETE',heade
 // ── Toast ──
 function toast(m,t){const c=document.getElementById('toast-container');const e=document.createElement('div');e.className='toast '+(t||'info');e.textContent=m;c.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateY(12px)';setTimeout(()=>e.remove(),300)},3000)}
 function toggleDrawer(force){const open=force===undefined?!document.body.classList.contains('drawer-open'):force;document.body.classList.toggle('drawer-open',open)}
+function showLanding(){const l=document.getElementById('landing');if(l)l.style.display='flex'}
+function hideLanding(){const l=document.getElementById('landing');if(l)l.style.display='none'}
 function toggleCS(force){const w=document.getElementById('cs-widget');if(!w)return;const open=force===undefined?!w.classList.contains('open'):force;w.classList.toggle('open',open)}
 function copyCS(){const id=(document.getElementById('cs-wx-id').textContent||'').trim();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(id).then(()=>toast('微信号已复制 ✅','success')).catch(()=>toast('请手动复制：'+id,'error'))}else{toast('请手动复制微信号：'+id,'info')}}
 
@@ -769,7 +827,7 @@ async function previewAccountLogin(){
   S.user={account:acc,token:r.token,member:r.member,member_until:r.member_until};
   localStorage.setItem('xma_token',r.token);
   localStorage.setItem('xma_account',acc);
-  updateAccountUI();saveState();closeAccountModal();toast('登录成功','success');
+  updateAccountUI();saveState();closeAccountModal();hideLanding();toast('登录成功','success');
 }
 function updateAccountUI(){
   const el=document.getElementById('member-status-text');
@@ -782,12 +840,12 @@ function updateAccountUI(){
   if(S.user?.token)document.getElementById('account-modal-title').textContent=S.user.account;
   const mi=document.getElementById('member-info');if(mi)mi.innerHTML=S.user?.member?'当前：会员':'当前：免费用户';
 }
-function logoutAccount(){S.user=null;localStorage.removeItem('xma_token');localStorage.removeItem('xma_account');updateAccountUI();toast('已退出登录')}
+function logoutAccount(){S.user=null;localStorage.removeItem('xma_token');localStorage.removeItem('xma_account');updateAccountUI();showLanding();toast('已退出登录')}
 async function restoreAccountPreview(){
   const token=localStorage.getItem('xma_token');
   const acc=localStorage.getItem('xma_account');
-  if(!token||!acc)return;
-  try{const d=await api('/api/auth/me');if(d.account){S.user={account:d.account,token,member:d.member,member_until:d.member_until};updateAccountUI()}}catch(e){}
+  if(!token||!acc){showLanding();return}
+  try{const d=await api('/api/auth/me');if(d.account){S.user={account:d.account,token,member:d.member,member_until:d.member_until};updateAccountUI();hideLanding()}else{showLanding()}}catch(e){showLanding()}
 }
 function saveState(){const d={videos:S.videos,accounts:S.accounts,products:S.products,queue:S.queue,selectedVoice:S.selectedVoice,selectedProvider:S.selectedProvider};localStorage.setItem('xma_state',JSON.stringify(d))}
 
@@ -1055,6 +1113,7 @@ async function checkStatus(){
 
 // ── Init ──
 async function init(){
+  if(localStorage.getItem('xma_token'))hideLanding();
   restoreAccountPreview();updateAccountUI();
   loadVoices().catch(()=>{});
   loadBatchVoices().catch(()=>{});
