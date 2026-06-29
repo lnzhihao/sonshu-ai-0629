@@ -1,95 +1,111 @@
-# 松鼠AI（新媒体-app）
+# 松鼠AI - AI 短视频创作平台
 
-> **AI 短视频创作平台**，专为跨境电商 / 社媒起号。上传商品图，AI 一键生成爆款带货视频（AI 成片 / AI 配音 / 批量混剪 / 批量发布）。
-> 单文件前端 `src/renderer/index.html` + Express 后端 `server.opt.js`，浅紫渐变 UI（仿 SeeAny/即梦），含松果积分体系与会员收款。
->
-> **本文件是唯一最新项目文档**（2026-06-26）。历史/过程文档已移入 `_归档文档/`。
+松鼠AI 是一个面向跨境电商、社媒运营和个人内容创业者的 AI 短视频创作平台原型。它把商品素材、脚本生成、AI 配音、批量混剪、会员积分和运营工作台放在同一个 Web 产品里，目标是让运营人员更快完成从素材到短视频成片的流程。
 
----
+## 在线体验
 
-## 一、线上 & 现状
-- **网站**：http://159.75.130.35 （未登录看营销页，登录进工作台）
-- **管理后台**：http://159.75.130.35/admin.html （密码 `songshu2024`，⚠️须改）
-- **GitHub**：`github.com/lnzhihao/xinmeiti-app`（私有，main 为唯一真相源）
-- **状态**：门面 + 收款 + 免费漏斗 + 真后端松果体系 + 安全加固 + 手机适配，**全部已上线**。
-- **唯一硬伤**：付款不能"秒到账"——个人账号无营业执照，当面付签不了，只能人工开通（执照问题，非代码）。
+- 用户端网站：http://159.75.130.35
+- 前端主页面：`src/renderer/index.html`
+- 管理端页面：`src/renderer/admin.html`
 
-## 二、技术栈
-后端 Node.js + Express（`server.opt.js` → 线上 `/opt/xinmeiti-app/server.js`）· 前端 原生 HTML/CSS/JS 单文件 · AI：豆包 ARK（LLM/Seedance 视频）+ 火山 TTS · ffmpeg · PM2 · Nginx。
+> 公开仓库不放置后台密码、服务器密钥、真实用户数据或付款凭证。管理端仅用于展示后台订单处理和会员开通流程的产品设计。
 
-## 三、服务器拓扑（接力必读）
-- 腾讯云 `159.75.130.35`（Ubuntu 2核2G）。**SSH 仅微信扫码**，无密钥密码。
-- pm2 进程 `xinmeiti` 跑 `/opt/xinmeiti-app/prod-server.js` → `require('./server.js')`，端口 **8787**。
-- nginx(80) 静态根 `/opt/xinmeiti-app/src/renderer/`，`/api` 反代 `127.0.0.1:8787`。`/opt` 非 git、无 cron。
-- 配置/数据：`/root/.xinmeiti/`（`.env` 密钥 / `users.json` 账号+松果 / `orders.json` 订单 / `pay-qr.jpg` 收款码）。
+## 页面预览
 
-## 四、部署方法（已验证）
-**SSH 仅微信扫码**：把命令给用户在他终端粘贴运行并扫码。`< 本地文件` 重定向不影响扫码。
+项目内包含营销页案例封面与二维码资源，主要页面集中在单文件前端里：
 
-- **纯前端改动**（只改 index.html，不重启，秒生效）：
-  ```bash
-  ssh root@159.75.130.35 'cp /opt/xinmeiti-app/src/renderer/index.html /root/xm-index-bak-$(date +%H%M%S).html; cat > /opt/xinmeiti-app/src/renderer/index.html && echo OK' < ~/Desktop/新媒体-app/src/renderer/index.html
-  ```
-- **含后端**（打 tgz：server.js+index.html+go.sh，go.sh 做 备份+cp到/opt+`pm2 restart xinmeiti`+自检）：
-  ```bash
-  ssh root@159.75.130.35 'mkdir -p /tmp/xmd && cd /tmp/xmd && cat > p.tgz && tar xzf p.tgz && bash go.sh && cd / && rm -rf /tmp/xmd' < 部署包.tgz
-  ```
-- **⚠️每次部署后必从外网 `curl http://159.75.130.35/...` 验证**（曾因多 AI 互相覆盖部署"回退"过）。
+| 页面 | 文件 | 说明 |
+|---|---|---|
+| 营销落地页 | `src/renderer/index.html` | 未登录用户看到的产品介绍、案例展示、会员转化入口 |
+| 创作工作台 | `src/renderer/index.html` | 登录后进入 AI 成片、AI 配音、批量混剪、素材库、批量发布等工具 |
+| 会员中心 | `src/renderer/index.html` | 展示免费版、会员版、松果积分和套餐权益 |
+| 管理后台 | `src/renderer/admin.html` | 查看订单、确认开通会员、手动查询账号状态 |
 
-## 五、本地开发
+示例素材：
+
+![案例封面 1](src/renderer/case1.jpg)
+![案例封面 2](src/renderer/case2.jpg)
+![案例封面 3](src/renderer/case3.jpg)
+
+## 核心功能
+
+- AI 成片：面向商品图和商品卖点，生成适合短视频带货的内容方案。
+- AI 配音：支持把视频脚本文案转成口播配音。
+- 批量混剪：把素材按规则组合，服务于多平台、多账号内容分发。
+- 素材库：集中管理视频、图片和生成结果。
+- 批量发布：预留 TikTok、抖音、小红书、视频号等平台分发入口。
+- 会员中心：包含免费额度、松果积分、套餐购买和订单确认流程。
+- 管理后台：支持订单查看、人工确认收款、会员开通和账号查询。
+
+## 技术栈
+
+- 前端：原生 HTML、CSS、JavaScript
+- 后端：Node.js、Express
+- 桌面壳：Electron
+- AI 能力：LLM 文案生成、AI 视频生成、TTS 配音接口
+- 部署相关：PM2、Nginx、Shell 脚本
+
+## 项目亮点
+
+- 一个文件承载完整产品体验：营销页、工作台、会员中心、弹窗和交互逻辑都集中在 `src/renderer/index.html`。
+- 不是简单页面展示，而是围绕真实运营流程设计：从商品素材、内容生成、混剪到分发和会员转化。
+- 会员与积分模型完整：注册赠送、每日签到、生成扣减、余额不足提醒、套餐开通等流程都已设计。
+- 保留产品化思路：有后台、订单、素材库、部署脚本和生产环境入口，适合作为 AI 工具产品作品集。
+
+## 本地运行
+
+安装依赖：
+
 ```bash
-cd ~/Desktop/新媒体-app
-node prod-server.js          # 仅 Web 服务 → http://localhost:8787（需 ~/.xinmeiti/.env 有密钥）
-# 或纯前端预览(无后端,改UI用)：
-cd src/renderer && python3 -m http.server 8899   # → http://localhost:8899
+npm install
 ```
 
-## 六、文件结构
-| 文件 | 用途 |
-|---|---|
-| `server.opt.js` | **后端**（部署为 `/opt/.../server.js`）。账号/松果/收款/AI 全在此 |
-| `src/renderer/index.html` | **全部前端**（单文件，营销页+工作台+各工具+弹窗+JS） |
-| `src/renderer/admin.html` | 收款管理后台（凭密码开通会员） |
-| `src/renderer/case1-6.jpg` | 营销页真实案例视频封面 |
-| `src/renderer/wechat-qr.jpg` | 客服微信二维码 |
-| `deploy/` | 收款码 `pay-qr.jpg` + 部署脚本 |
-| `prod-server.js` / `ecosystem.config.js` / `nginx.conf` | 生产入口 / PM2 / Nginx 配置 |
-| `_归档文档/` | 历史过程文档（不再维护） |
+启动 Web 服务：
 
-## 七、核心功能
-- **营销落地页**（未登录）：渐变 Hero + 仿真创作卡 + 4 类视频卡（UGC种草/带货短剧/产品口播/产品演示）+ 真实案例墙 + 客服浮窗。
-- **首页=工作台**（登录后同壳）：AI 成片 / AI 配音 / 批量混剪 / 素材库 / 批量发布 / 会员中心。
-- **会员中心**：免费版 vs 会员版权益对比 + 三档套餐（体验¥79/800松果 · 标准¥239/2600 · 专业¥649/7500）。
-- **收款**：支付弹窗（支付宝收款码 + 客服微信码）→「我已付款」生成订单 → 后台一键开通。
-
-## 八、松果（积分）经济模型 — 真后端，存 users.json
-| 机制 | 规则 |
-|---|---|
-| 注册 | 送 **300** 松果 |
-| 每日签到 | **+30**（登录/进站自动发，服务器记日期，一天一次）|
-| 生成扣减 | 成片 **300** · 配音 **10** · 混剪 **10**（`POST /api/usage/consume`）|
-| 开通会员 | 套餐松果到账余额 |
-| 余额不足 | 提示开会员/签到，拦住生成 |
-| 匿名 | 本地 2 次免费 → 引导登录 |
-
-## 九、⛔ 被外部卡死（别再投入）
-- **自动收款/秒到账**：个人无营业执照 → 当面付/微信支付商户签不了。出路：办**个体工商户执照**。
-- **TikTok/抖音/小红书/视频号 一键发布**：无"非企业"开放发布 API。现"复制文案+打开网页"是现实最优。
-
-## 十、后续路线图（按价值）
-1. ⭐ 接口实测 Step2 扣减（注册→看300→生成扣→签到+30）
-2. ⭐⭐ **兑换码系统**（绕执照实现"秒解锁"：后台生成码→卖→站内输码→松果/会员秒到账）
-3. ⭐ 会员权益真生效（去水印/优先通道现仅文案）
-4. 按秒精确扣费 · API密钥配置挪进 admin.html · 改默认管理员密码 `songshu2024`
-5. 办执照 → 切官方当面付（届时把 `.env` 的孤儿公钥 `mY1O…` 换成支付宝后台给的真支付宝公钥）
-6. backlog：实时生成预览 / 素材库搜索标签 / 数据面板(ROI) / 新手引导 / 忘记密码 / 混剪时间线可编辑
-
-## 十一、协作规矩（多 AI 接力）
-**一次只用一个 AI 改/部署；改前 `git pull`、收工 `git push`；从 GitHub main 走；改完自检 + 外网 curl 验证再交付。** 否则会互相覆盖回退。
-
-## 十二、运维
 ```bash
-pm2 status / pm2 logs xinmeiti / pm2 restart xinmeiti     # 应用
-nginx -t / systemctl restart nginx                        # Nginx
+node prod-server.js
 ```
-关键 env（`/root/.xinmeiti/.env`）：`ARK_API_KEY`(豆包) · `TTS_API_KEY`/`TTS_RESOURCE_ID`(火山TTS) · `ALIPAY_APP_ID`/`ALIPAY_PUBLIC_KEY` · `PAY_CONTACT`(客服微信) · `ADMIN_PASSWORD`(后台密码) · `PUBLIC_URL`。
+
+默认访问：
+
+```text
+http://localhost:8787
+```
+
+如果只想看前端页面，也可以进入前端目录直接预览：
+
+```bash
+cd src/renderer
+python3 -m http.server 8899
+```
+
+然后打开：
+
+```text
+http://localhost:8899
+```
+
+## 主要文件
+
+| 文件 | 作用 |
+|---|---|
+| `src/renderer/index.html` | 产品主界面，包含营销页、工作台、会员中心和主要交互 |
+| `src/renderer/admin.html` | 管理后台页面 |
+| `server.opt.js` | 较完整的后端版本，包含账号、积分、会员、AI 和订单相关接口 |
+| `server.js` | 早期/基础后端入口 |
+| `prod-server.js` | 生产启动入口 |
+| `main.js` / `preload.js` | Electron 桌面应用入口 |
+| `assets/` | 应用图标 |
+| `deploy/` | 部署脚本与部署资源 |
+
+## 后续优化方向
+
+- 增加真实生成任务的进度可视化。
+- 补充素材库搜索、标签和筛选能力。
+- 增加数据面板，例如生成次数、内容产出、会员转化等。
+- 将管理后台权限和配置项进一步产品化。
+- 补充更多真实页面截图和演示视频。
+
+## 说明
+
+这是一个作品集展示项目，重点展示 AI 工具产品的页面设计、业务流程和工程结构。公开仓库不应提交真实密钥、后台密码、用户数据或付款凭证。
